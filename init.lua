@@ -30,8 +30,27 @@ minetest.register_globalstep(function(dtime)
 						vec.x = vec.x*3
 						vec.y = vec.y*3
 						vec.z = vec.z*3
-						--object:setacceleration(vec)
 						object:setvelocity(vec)
+						
+						minetest.after(1, function(args)
+							local lua = object:get_luaentity()
+							if object == nil or lua == nil or lua.itemstring == nil then
+								return
+							end
+							if inv:room_for_item("main", ItemStack(object:get_luaentity().itemstring)) then
+								inv:add_item("main", ItemStack(object:get_luaentity().itemstring))
+								if object:get_luaentity().itemstring ~= "" then
+									minetest.sound_play("item_drop_pickup", {
+										to_player = player:get_player_name(),
+									})
+								end
+								object:get_luaentity().itemstring = ""
+								object:remove()
+							else
+								object:setvelocity({x=0,y=0,z=0})
+							end
+						end, {player, object})
+						
 					end
 				else
 					minetest.after(0.5, function(entity)
