@@ -62,11 +62,12 @@ minetest.register_globalstep(function(dtime)
 	end
 end)
 
-
+-- TODO this can be removed in future version
 function minetest.get_node_drops(nodename, toolname)
 	return {}
 end
 
+-- TODO this can be removed in future version
 function minetest.get_drops(nodename, toolname)
 	local drop = ItemStack({name=nodename}):get_definition().drop
 	if drop == nil then
@@ -115,6 +116,13 @@ function minetest.get_drops(nodename, toolname)
 	end
 	return got_items
 end
+
+-- TODO this code will work in a future version of Minetest
+--[[
+function minetest.handle_node_drops(pos, drops, digger)
+	return
+end
+]]
 
 minetest.register_on_dignode(function(pos, oldnode, digger)
 	local drop = minetest.get_drops(oldnode.name, digger:get_wielded_item():get_name())
