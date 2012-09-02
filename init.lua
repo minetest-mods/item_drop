@@ -99,20 +99,39 @@ end
 
 minetest.register_on_dignode(function(pos, oldnode, digger)
 	local drop = minetest.get_drops(oldnode.name, digger:get_wielded_item():get_name())
+	if drop == nil then
+		return
+	end
 	for _,item in ipairs(drop) do
-		for i=1,item:get_count() do
-			local obj = minetest.env:add_item(pos, item:get_name())
-			if obj ~= nil then
-				obj:get_luaentity().collect = true
-				local x = math.random(1, 5)
-				if math.random(1,2) == 1 then
-					x = -x
+		if type(item) == "string" then
+			local obj = minetest.env:add_item(pos, item)
+				if obj ~= nil then
+					obj:get_luaentity().collect = true
+					local x = math.random(1, 5)
+					if math.random(1,2) == 1 then
+						x = -x
+					end
+					local z = math.random(1, 5)
+					if math.random(1,2) == 1 then
+						z = -z
+					end
+					obj:setvelocity({x=1/x, y=obj:getvelocity().y, z=1/z})
 				end
-				local z = math.random(1, 5)
-				if math.random(1,2) == 1 then
-					z = -z
+		else
+			for i=1,item:get_count() do
+				local obj = minetest.env:add_item(pos, item:get_name())
+				if obj ~= nil then
+					obj:get_luaentity().collect = true
+					local x = math.random(1, 5)
+					if math.random(1,2) == 1 then
+						x = -x
+					end
+					local z = math.random(1, 5)
+					if math.random(1,2) == 1 then
+						z = -z
+					end
+					obj:setvelocity({x=1/x, y=obj:getvelocity().y, z=1/z})
 				end
-				obj:setvelocity({x=1/x, y=obj:getvelocity().y, z=1/z})
 			end
 		end
 	end
