@@ -62,70 +62,12 @@ minetest.register_globalstep(function(dtime)
 	end
 end)
 
--- TODO this can be removed in future version
-function minetest.get_node_drops(nodename, toolname)
-	return {}
-end
-
--- TODO this can be removed in future version
-function minetest.get_drops(nodename, toolname)
-	local drop = ItemStack({name=nodename}):get_definition().drop
-	if drop == nil then
-		-- default drop
-		return {ItemStack({name=nodename})}
-	elseif type(drop) == "string" then
-		-- itemstring drop
-		return {ItemStack(drop)}
-	elseif drop.items == nil then
-		-- drop = {} to disable default drop
-		return {}
-	end
-
-	-- Extended drop table
-	local got_items = {}
-	local got_count = 0
-	local _, item, tool
-	for _, item in ipairs(drop.items) do
-		local good_rarity = true
-		local good_tool = true
-		if item.rarity ~= nil then
-			good_rarity = item.rarity < 1 or math.random(item.rarity) == 1
-		end
-		if item.tools ~= nil then
-			good_tool = false
-			for _, tool in ipairs(item.tools) do
-				if tool:sub(1, 1) == '~' then
-					good_tool = toolname:find(tool:sub(2)) ~= nil
-				else
-					good_tool = toolname == tool
-				end
-				if good_tool then
-					break
-				end
-			end
-        	end
-		if good_rarity and good_tool then
-			got_count = got_count + 1
-			for _, add_item in ipairs(item.items) do
-				got_items[#got_items+1] = add_item
-			end
-			if drop.max_items ~= nil and got_count == drop.max_items then
-				break
-			end
-		end
-	end
-	return got_items
-end
-
--- TODO this code will work in a future version of Minetest
---[[
 function minetest.handle_node_drops(pos, drops, digger)
 	return
 end
-]]
 
 minetest.register_on_dignode(function(pos, oldnode, digger)
-	local drop = minetest.get_drops(oldnode.name, digger:get_wielded_item():get_name())
+	local drop = minetest.get_node_drops(oldnode.name, digger:get_wielded_item():get_name())
 	if drop == nil then
 		return
 	end

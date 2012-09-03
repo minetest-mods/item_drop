@@ -17,18 +17,8 @@ How to use the mod:
 Just install it an everything works.
 
 For developers:
-This mod changes the minetest.get_node_drops() function to always
-return {}. Use minetest.get_drops() to get the right drop.
-Example:
-Before:
-local drop = minetest.get_node_drops("default:dirt", "default:pick_mese")
-After:
-local drop
-if minetest.get_modpath("item_drop") == nil then
-	drop = minetest.get_node_drops("default:dirt", "default:pick_mese")
-else
-	drop = minetest.get_drops("default:dirt", "default:pick_mese")
-end
+You dont have to use get_drops() anymore because of changes in the
+builtin files of minetest.
 
 License:
 Sourcecode: WTFPL (see below)
