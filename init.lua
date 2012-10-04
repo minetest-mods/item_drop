@@ -52,10 +52,6 @@ minetest.register_globalstep(function(dtime)
 						end, {player, object})
 						
 					end
-				else
-					minetest.after(0.5, function(entity)
-						entity.collect = true
-					end, object:get_luaentity())
 				end
 			end
 		end
