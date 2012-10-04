@@ -6,7 +6,7 @@ minetest.register_globalstep(function(dtime)
 		
 		for _,object in ipairs(minetest.env:get_objects_inside_radius(pos, 1)) do
 			if not object:is_player() and object:get_luaentity() and object:get_luaentity().name == "__builtin:item" then
-				if inv:room_for_item("main", ItemStack(object:get_luaentity().itemstring)) then
+				if inv and inv:room_for_item("main", ItemStack(object:get_luaentity().itemstring)) then
 					inv:add_item("main", ItemStack(object:get_luaentity().itemstring))
 					if object:get_luaentity().itemstring ~= "" then
 						minetest.sound_play("item_drop_pickup", {
@@ -22,7 +22,7 @@ minetest.register_globalstep(function(dtime)
 		for _,object in ipairs(minetest.env:get_objects_inside_radius(pos, 2)) do
 			if not object:is_player() and object:get_luaentity() and object:get_luaentity().name == "__builtin:item" then
 				if object:get_luaentity().collect then
-					if inv:room_for_item("main", ItemStack(object:get_luaentity().itemstring)) then
+					if inv and inv:room_for_item("main", ItemStack(object:get_luaentity().itemstring)) then
 						local pos1 = pos
 						pos1.y = pos1.y+0.2
 						local pos2 = object:getpos()
