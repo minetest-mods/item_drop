@@ -92,3 +92,7 @@ function minetest.handle_node_drops(pos, drops, digger)
 		end
 	end
 end
+
+if minetest.setting_get("log_mods") then
+	minetest.log("action", "item_drop loaded")
+end
