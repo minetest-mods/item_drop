@@ -61,6 +61,10 @@ minetest.register_globalstep(function(dtime)
 end)
 
 function minetest.handle_node_drops(pos, drops, digger)
+	local inv
+	if minetest.setting_getbool("creative_mode") and digger and digger:is_player() then
+		inv = digger:get_inventory()
+	end
 	for _,item in ipairs(drops) do
 		local count, name
 		if type(item) == "string" then
@@ -70,25 +74,27 @@ function minetest.handle_node_drops(pos, drops, digger)
 			count = item:get_count()
 			name = item:get_name()
 		end
-		for i=1,count do
-			local obj = minetest.env:add_item(pos, name)
-			if obj ~= nil then
-				obj:get_luaentity().collect = true
-				local x = math.random(1, 5)
-				if math.random(1,2) == 1 then
-					x = -x
-				end
-				local z = math.random(1, 5)
-				if math.random(1,2) == 1 then
-					z = -z
-				end
-				obj:setvelocity({x=1/x, y=obj:getvelocity().y, z=1/z})
-				
-				-- FIXME this doesnt work for deactiveted objects
-				if minetest.setting_get("remove_items") and tonumber(minetest.setting_get("remove_items")) then
-					minetest.after(tonumber(minetest.setting_get("remove_items")), function(obj)
-						obj:remove()
-					end, obj)
+		if not inv or not inv:contains_item("main", ItemStack(name)) then
+			for i=1,count do
+				local obj = minetest.env:add_item(pos, name)
+				if obj ~= nil then
+					obj:get_luaentity().collect = true
+					local x = math.random(1, 5)
+					if math.random(1,2) == 1 then
+						x = -x
+					end
+					local z = math.random(1, 5)
+					if math.random(1,2) == 1 then
+						z = -z
+					end
+					obj:setvelocity({x=1/x, y=obj:getvelocity().y, z=1/z})
+					
+					-- FIXME this doesnt work for deactiveted objects
+					if minetest.setting_get("remove_items") and tonumber(minetest.setting_get("remove_items")) then
+						minetest.after(tonumber(minetest.setting_get("remove_items")), function(obj)
+							obj:remove()
+						end, obj)
+					end
 				end
 			end
 		end
