@@ -12,6 +12,7 @@ minetest.register_globalstep(function(dtime)
 						if object:get_luaentity().itemstring ~= "" then
 							minetest.sound_play("item_drop_pickup", {
 								to_player = player:get_player_name(),
+								gain = 0.4,
 							})
 						end
 						object:get_luaentity().itemstring = ""
@@ -43,6 +44,7 @@ minetest.register_globalstep(function(dtime)
 									if object:get_luaentity().itemstring ~= "" then
 										minetest.sound_play("item_drop_pickup", {
 											to_player = player:get_player_name(),
+											gain = 0.4,
 										})
 									end
 									object:get_luaentity().itemstring = ""
