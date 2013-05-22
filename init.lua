@@ -33,6 +33,10 @@ minetest.register_globalstep(function(dtime)
 							vec.y = vec.y*3
 							vec.z = vec.z*3
 							object:setvelocity(vec)
+							object:get_luaentity().physical_state = false
+							object:get_luaentity().object:set_properties({
+								physical = false
+							})
 							
 							minetest.after(1, function(args)
 								local lua = object:get_luaentity()
@@ -51,6 +55,10 @@ minetest.register_globalstep(function(dtime)
 									object:remove()
 								else
 									object:setvelocity({x=0,y=0,z=0})
+									bject:get_luaentity().physical_state = true
+									object:get_luaentity().object:set_properties({
+										physical = true
+									})
 								end
 							end, {player, object})
 							
