@@ -121,13 +121,6 @@ if enable_item_drops then
 							z = -z
 						end
 						obj:setvelocity({x=1/x, y=obj:getvelocity().y, z=1/z})
-
-						-- FIXME this doesnt work for deactiveted objects
-						if minetest.settings:get("remove_items") and tonumber(minetest.settings:get("remove_items")) then
-							minetest.after(tonumber(minetest.settings:get("remove_items")), function(obj)
-								obj:remove()
-							end, obj)
-						end
 					end
 				end
 			end
