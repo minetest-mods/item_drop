@@ -1,11 +1,11 @@
 local pickup = minetest.settings:get_bool("enable_item_pickup")
-local drops = minetest.settings:get_bool("enable_item_drops")
+local drop = minetest.settings:get_bool("enable_item_drop")
 local key = minetest.settings:get_bool("enable_item_pickup_key")
 local keytype = minetest.settings:get("item_pickup_keytype") or "Use"
 local gain = tonumber(minetest.settings:get("item_pickup_gain")) or 0.4
 
 if pickup == nil then pickup = true end
-if drops == nil then drops = true end
+if drop == nil then drop = true end
 if key == nil then key = true end
 
 local key_press = false
@@ -93,7 +93,7 @@ if pickup then
 	end)
 end
 
-if drops then
+if drop then
 	function minetest.handle_node_drops(pos, drops, digger)
 		local inv
 		if minetest.settings:get_bool("creative_mode") and digger and digger:is_player() then
