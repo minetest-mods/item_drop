@@ -1,6 +1,9 @@
-local enable_item_pickup = minetest.settings:get_bool("enable_item_pickup") or true
-local enable_item_drops = minetest.settings:get_bool("enable_item_drops") or true
-local item_pickup_key = minetest.settings:get_bool("item_pickup_key") or false
+local enable_item_pickup = minetest.settings:get_bool("enable_item_pickup")
+if enable_item_pickup == nil then enable_item_pickup = true end
+local enable_item_drops = minetest.settings:get_bool("enable_item_drops")
+if enable_item_drops == nil then enable_item_drops = true end
+local item_pickup_key = minetest.settings:get_bool("item_pickup_key")
+if item_pickup_key == nil then item_pickup_key = true end
 local item_pickup_keytype = minetest.settings:get("item_pickup_keytype") or "use"
 local item_pickup_gain = tonumber(minetest.settings:get("item_pickup_gain")) or 0.4
 
