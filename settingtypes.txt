@@ -2,7 +2,7 @@
 enable_item_pickup (Enable item pickups) bool true
 
 #Drop items in-world on dig
-enable_item_drops (Enable item drops) bool true
+enable_item_drop (Enable item drops) bool true
 
 #Use a key to pick up items
 enable_item_pickup_key (Use pickup key) bool true
