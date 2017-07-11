@@ -13,12 +13,13 @@ local key_press = false
 if pickup then
 	minetest.register_globalstep(function(dtime)
 		for _,player in ipairs(minetest.get_connected_players()) do
+			local ctrl = player:get_player_control()
 			if keytype == "Sneak" then
-				key_press = player:get_player_control().sneak
+				key_press = ctrl.sneak
 			elseif keytype == "LeftAndRight" then
-				key_press = player:get_player_control().left and player:get_player_control().right
+				key_press = ctrl.left and ctrl.right
 			else
-				key_press = player:get_player_control().aux1
+				key_press = ctrl.aux1
 			end
 			if key_press or not key then
 				if player:get_hp() > 0 or not minetest.settings:get_bool("enable_damage") then
