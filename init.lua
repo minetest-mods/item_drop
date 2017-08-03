@@ -1,40 +1,57 @@
 local pickup = minetest.settings:get_bool("enable_item_pickup")
 local drop = minetest.settings:get_bool("enable_item_drop")
 local key = minetest.settings:get_bool("enable_item_pickup_key")
-local keytype = minetest.settings:get("item_pickup_keytype") or "Use"
-local gain = tonumber(minetest.settings:get("item_pickup_gain")) or 0.4
 
 if pickup == nil then pickup = true end
 if drop == nil then drop = true end
 if key == nil then key = true end
 
-local key_press = false
+local keytype = minetest.settings:get("item_pickup_keytype") or "Use"
+local pickup_gain = tonumber(minetest.settings:get("item_pickup_gain")) or 0.4
+local pickup_radius = tonumber(minetest.settings:get("item_pickup_radius")) or 0.75
+
+local timer = 0
 
 if pickup then
 	minetest.register_globalstep(function(dtime)
+
+		timer = timer + dtime
+		if timer < 0.2 then return end
+		timer = 0
+
 		for _,player in ipairs(minetest.get_connected_players()) do
-			local ctrl = player:get_player_control()
-			if keytype == "Sneak" then
-				key_press = ctrl.sneak
-			elseif keytype == "LeftAndRight" then
-				key_press = ctrl.left and ctrl.right
-			else
-				key_press = ctrl.aux1
+			local keys_pressed = false
+
+			local control = player:get_player_control()
+
+			if keytype == "Use" then
+				if control.aux1 == true then keys_pressed = true end
+			elseif keytype == "Sneak" then
+				if control.sneak == true then keys_pressed = true end
+			elseif keytype == "LeftAndRight" then -- LeftAndRight combination
+				if control.left and control.right then keys_pressed = true end
+			elseif keytype == "RMB" then
+				if control.RMB == true then keys_pressed = true end
+			elseif keytype == "SneakAndRMB" then -- SneakAndRMB combination
+				if control.sneak and control.RMB then keys_pressed = true end
 			end
-			if key_press or not key then
+
+			if keys_pressed or not key then
+
 				if player:get_hp() > 0 or not minetest.settings:get_bool("enable_damage") then
 					local pos = player:getpos()
 					pos.y = pos.y+0.5
 					local inv = player:get_inventory()
 
-					for _,object in ipairs(minetest.get_objects_inside_radius(pos, 1)) do
+					for _,object in ipairs(minetest.get_objects_inside_radius(pos, pickup_radius)) do
 						if not object:is_player() and object:get_luaentity() and object:get_luaentity().name == "__builtin:item" then
 							if inv and inv:room_for_item("main", ItemStack(object:get_luaentity().itemstring)) then
 								inv:add_item("main", ItemStack(object:get_luaentity().itemstring))
 								if object:get_luaentity().itemstring ~= "" then
+									--minetest.chat_send_player(player:get_player_name(), "[ItemPickup] You picked up " .. object:get_luaentity().itemstring)
 									minetest.sound_play("item_drop_pickup", {
 										to_player = player:get_player_name(),
-										gain = gain,
+										gain = pickup_gain,
 									})
 								end
 								object:get_luaentity().itemstring = ""
@@ -62,15 +79,14 @@ if pickup then
 
 									minetest.after(1, function(args)
 										local lua = object:get_luaentity()
-										if object == nil or lua == nil or lua.itemstring == nil then
-											return
-										end
+										if object == nil or lua == nil or lua.itemstring == nil then return end
+
 										if inv:room_for_item("main", ItemStack(object:get_luaentity().itemstring)) then
 											inv:add_item("main", ItemStack(object:get_luaentity().itemstring))
 											if object:get_luaentity().itemstring ~= "" then
 												minetest.sound_play("item_drop_pickup", {
 													to_player = player:get_player_name(),
-													gain = gain,
+													gain = pickup_gain,
 												})
 											end
 											object:get_luaentity().itemstring = ""
@@ -82,6 +98,7 @@ if pickup then
 												physical = true
 											})
 										end
+
 									end, {player, object})
 
 								end
@@ -96,10 +113,15 @@ end
 
 if drop then
 	function minetest.handle_node_drops(pos, drops, digger)
+
 		local inv
+		local diggerPos = pos
+
 		if minetest.settings:get_bool("creative_mode") and digger and digger:is_player() then
 			inv = digger:get_inventory()
+			diggerPos = digger:getpos()
 		end
+
 		for _,item in ipairs(drops) do
 			local count, name
 			if type(item) == "string" then
@@ -109,19 +131,21 @@ if drop then
 				count = item:get_count()
 				name = item:get_name()
 			end
+
 			if not inv or not inv:contains_item("main", ItemStack(name)) then
 				for i=1,count do
-					local obj = minetest.add_item(pos, name)
+
+					local adjustedPos = {x=diggerPos.x, y=diggerPos.y, z=diggerPos.z}
+					local obj = minetest.add_item(adjustedPos, name)
+
 					if obj ~= nil then
 						obj:get_luaentity().collect = true
 						local x = math.random(1, 5)
-						if math.random(1,2) == 1 then
-							x = -x
-						end
+						if math.random(1,2) == 1 then x = -x end
+
 						local z = math.random(1, 5)
-						if math.random(1,2) == 1 then
-							z = -z
-						end
+						if math.random(1,2) == 1 then z = -z end
+
 						obj:setvelocity({x=1/x, y=obj:getvelocity().y, z=1/z})
 					end
 				end
@@ -130,6 +154,4 @@ if drop then
 	end
 end
 
-if minetest.settings:get("log_mods") then
-	minetest.log("action", "item_drop loaded")
-end
+if minetest.settings:get("log_mods") then minetest.log("action", "[Mod] item_drop loaded") end
