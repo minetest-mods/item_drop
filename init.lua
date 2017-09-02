@@ -1,14 +1,11 @@
-local pickup = minetest.settings:get_bool("enable_item_pickup")
-local drop = minetest.settings:get_bool("enable_item_drop")
-local key = minetest.settings:get_bool("enable_item_pickup_key")
-
-if pickup == nil then pickup = true end
-if drop == nil then drop = true end
-if key == nil then key = true end
-
+local pickup = minetest.settings:get_bool("enable_item_pickup") ~= false
+local drop = minetest.settings:get_bool("enable_item_drop") ~= false
+local key = minetest.settings:get_bool("enable_item_pickup_key") ~= false
 local keytype = minetest.settings:get("item_pickup_keytype") or "Use"
 local pickup_gain = tonumber(minetest.settings:get("item_pickup_gain")) or 0.4
 local pickup_radius = tonumber(minetest.settings:get("item_pickup_radius")) or 0.75
+
+local damage_enabled = minetest.settings:get_bool("enable_damage")
 
 local timer = 0
 
@@ -25,84 +22,84 @@ if pickup then
       local control = player:get_player_control()
 
       if keytype == "Use" then
-        if control.aux1 == true then keys_pressed = true end
+        keys_pressed = control.aux1
       elseif keytype == "Sneak" then
-        if control.sneak == true then keys_pressed = true end
+        keys_pressed = control.sneak
       elseif keytype == "LeftAndRight" then -- LeftAndRight combination
-        if control.left and control.right then keys_pressed = true end
+        keys_pressed = control.left and control.right
       elseif keytype == "RMB" then
-        if control.RMB == true then keys_pressed = true end
+        keys_pressed = control.RMB
       elseif keytype == "SneakAndRMB" then -- SneakAndRMB combination
-        if control.sneak and control.RMB then keys_pressed = true end
+        keys_pressed = control.sneak and control.RMB
       end
 
-      if keys_pressed or not key then
+      if not keys_pressed and key
+      or (damage_enabled and player:get_hp() <= 0) then
+        return
+      end
 
-        if player:get_hp() > 0 or not minetest.settings:get_bool("enable_damage") then
-          local pos = player:getpos()
-          pos.y = pos.y+0.5
-          local inv = player:get_inventory()
+      local pos = player:getpos()
+      pos.y = pos.y+0.5
+      local inv = player:get_inventory()
 
-          local objectlist = minetest.get_objects_inside_radius(pos, pickup_radius)
-          for _,object in ipairs(objectlist) do
-            if not object:is_player()
-            and object:get_luaentity()
-            and object:get_luaentity().name == "__builtin:item" then
-              local pos2 = object:getpos()
-              local distance = math.sqrt(((pos2.x - pos.x) * (pos2.x - pos.x)) + ((pos2.y - pos.y) * (pos2.y - pos.y))
-                + ((pos2.z - pos.z) * (pos2.z - pos.z)))
-              if distance <= 1 then
-                if inv and inv:room_for_item("main", ItemStack(object:get_luaentity().itemstring)) then
-                  inv:add_item("main", ItemStack(object:get_luaentity().itemstring))
-                  if object:get_luaentity().itemstring ~= "" then
-                    minetest.sound_play("item_drop_pickup", {
-                      to_player = player:get_player_name(),
-                      gain = pickup_gain,
-                    })
+      local objectlist = minetest.get_objects_inside_radius(pos, pickup_radius)
+      for _,object in ipairs(objectlist) do
+        if not object:is_player()
+        and object:get_luaentity()
+        and object:get_luaentity().name == "__builtin:item" then
+          local pos2 = object:getpos()
+          local distance = math.sqrt(((pos2.x - pos.x) * (pos2.x - pos.x)) + ((pos2.y - pos.y) * (pos2.y - pos.y))
+            + ((pos2.z - pos.z) * (pos2.z - pos.z)))
+          if distance <= 1 then
+            if inv and inv:room_for_item("main", ItemStack(object:get_luaentity().itemstring)) then
+              inv:add_item("main", ItemStack(object:get_luaentity().itemstring))
+              if object:get_luaentity().itemstring ~= "" then
+                minetest.sound_play("item_drop_pickup", {
+                  to_player = player:get_player_name(),
+                  gain = pickup_gain,
+                })
+              end
+              object:get_luaentity().itemstring = ""
+              object:remove()
+            end
+          else
+            if object:get_luaentity().collect then
+              if inv and inv:room_for_item("main", ItemStack(object:get_luaentity().itemstring)) then
+                local pos1 = pos
+                pos1.y = pos1.y+0.2
+                local vec = {x=pos1.x-pos2.x, y=pos1.y-pos2.y, z=pos1.z-pos2.z}
+                vec.x = vec.x*3
+                vec.y = vec.y*3
+                vec.z = vec.z*3
+                object:setvelocity(vec)
+                object:get_luaentity().physical_state = false
+                object:get_luaentity().object:set_properties({
+                  physical = false
+                })
+
+                minetest.after(1, function()
+                  local lua = object:get_luaentity()
+                  if not lua or not lua.itemstring then
+                    return
                   end
-                  object:get_luaentity().itemstring = ""
-                  object:remove()
-                end
-              else
-                if object:get_luaentity().collect then
-                  if inv and inv:room_for_item("main", ItemStack(object:get_luaentity().itemstring)) then
-                    local pos1 = pos
-                    pos1.y = pos1.y+0.2
-                    local vec = {x=pos1.x-pos2.x, y=pos1.y-pos2.y, z=pos1.z-pos2.z}
-                    vec.x = vec.x*3
-                    vec.y = vec.y*3
-                    vec.z = vec.z*3
-                    object:setvelocity(vec)
-                    object:get_luaentity().physical_state = false
+                  if inv:room_for_item("main", ItemStack(object:get_luaentity().itemstring)) then
+                    inv:add_item("main", ItemStack(object:get_luaentity().itemstring))
+                    if object:get_luaentity().itemstring ~= "" then
+                      minetest.sound_play("item_drop_pickup", {
+                        to_player = player:get_player_name(),
+                        gain = pickup_gain,
+                      })
+                    end
+                    object:get_luaentity().itemstring = ""
+                    object:remove()
+                  else
+                    object:setvelocity({x=0,y=0,z=0})
+                    object:get_luaentity().physical_state = true
                     object:get_luaentity().object:set_properties({
-                      physical = false
+                      physical = true
                     })
-
-                    minetest.after(1, function()
-                      local lua = object:get_luaentity()
-                      if object == nil or lua == nil or lua.itemstring == nil then
-                        return
-                      end
-                      if inv:room_for_item("main", ItemStack(object:get_luaentity().itemstring)) then
-                        inv:add_item("main", ItemStack(object:get_luaentity().itemstring))
-                        if object:get_luaentity().itemstring ~= "" then
-                          minetest.sound_play("item_drop_pickup", {
-                            to_player = player:get_player_name(),
-                            gain = pickup_gain,
-                          })
-                        end
-                        object:get_luaentity().itemstring = ""
-                        object:remove()
-                      else
-                        object:setvelocity({x=0,y=0,z=0})
-                        object:get_luaentity().physical_state = true
-                        object:get_luaentity().object:set_properties({
-                          physical = true
-                        })
-                      end
-                    end, {player, object})
                   end
-                end
+                end, {player, object})
               end
             end
           end
