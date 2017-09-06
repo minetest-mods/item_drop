@@ -1,17 +1,17 @@
 #Pick up items automatically
-enable_item_pickup (Enable item pickups) bool true
+item_drop.enable_item_pickup (Enable item pickups) bool true
 
 #Drop items in-world on dig
-enable_item_drop (Enable item drops) bool true
+item_drop.enable_item_drop (Enable item drops) bool true
 
 #Use a key to pick up items
-enable_item_pickup_key (Use pickup key) bool true
+item_drop.enable_pickup_key (Use pickup key) bool true
 
 #What keytype to use as pickup key
-item_pickup_keytype (Pickup keytype) enum Use Use,Sneak,LeftAndRight,RMB,SneakAndRMB
+item_drop.pickup_keytype (Pickup keytype) enum Use Use,Sneak,LeftAndRight,RMB,SneakAndRMB
 
 #The volume of the pickup sound
-item_pickup_gain (Pickup sound gain) float 0.4
+item_drop.pickup_sound_gain (Pickup sound gain) float 0.4
 
 #Player pickup radius
-item_pickup_radius (Pickup radius) float 0.75
+item_drop.pickup_radius (Pickup radius) float 0.75
