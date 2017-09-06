@@ -1,15 +1,15 @@
-local pickup = minetest.settings:get_bool("enable_item_pickup") ~= false
-local drop = minetest.settings:get_bool("enable_item_drop") ~= false
-local key = minetest.settings:get_bool("enable_item_pickup_key") ~= false
-local keytype = minetest.settings:get("item_pickup_keytype") or "Use"
-local pickup_gain = tonumber(minetest.settings:get("item_pickup_gain")) or 0.4
-local pickup_radius = tonumber(minetest.settings:get("item_pickup_radius")) or 0.75
-
-local damage_enabled = minetest.settings:get_bool("enable_damage")
-
 local timer = 0
 
-if pickup then
+if minetest.settings:get_bool("enable_item_pickup") ~= false then
+  local pickup_gain = tonumber(minetest.settings:get("item_pickup_gain")) or 0.4
+  local pickup_radius = tonumber(minetest.settings:get("item_pickup_radius")) or 0.75
+  local key_triggered = minetest.settings:get_bool("enable_item_pickup_key") ~= false
+  local keytype
+  if key_triggered then
+    keytype = minetest.settings:get("item_pickup_keytype") or "Use"
+  end
+  local damage_enabled = minetest.settings:get_bool("enable_damage")
+
   minetest.register_globalstep(function(dtime)
 
     timer = timer + dtime
@@ -17,7 +17,7 @@ if pickup then
     timer = 0
 
     for _,player in ipairs(minetest.get_connected_players()) do
-      local keys_pressed = false
+      local keys_pressed = not key_triggered
 
       local control = player:get_player_control()
 
@@ -33,7 +33,7 @@ if pickup then
         keys_pressed = control.sneak and control.RMB
       end
 
-      if not keys_pressed and key
+      if not keys_pressed
       or (damage_enabled and player:get_hp() <= 0) then
         return
       end
@@ -109,7 +109,7 @@ if pickup then
   end)
 end
 
-if drop then
+if minetest.settings:get_bool("enable_item_drop") ~= false then
   function minetest.handle_node_drops(pos, drops, digger)
 
     local inv
