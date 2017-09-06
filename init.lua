@@ -1,13 +1,13 @@
-if minetest.settings:get_bool("enable_item_pickup") ~= false then
-	local pickup_gain = tonumber(minetest.settings:get("item_pickup_gain"))
-		or 0.4
-	local pickup_radius = tonumber(minetest.settings:get("item_pickup_radius"))
-		or 0.75
-	local key_triggered = minetest.settings:get_bool("enable_item_pickup_key")
-		~= false
+if minetest.settings:get_bool("item_drop.enable_item_pickup") ~= false then
+	local pickup_gain = tonumber(
+		minetest.settings:get("item_drop.pickup_sound_gain")) or 0.4
+	local pickup_radius = tonumber(
+		minetest.settings:get("item_drop.pickup_radius")) or 0.75
+	local key_triggered = minetest.settings:get_bool(
+		"item_drop.enable_pickup_key") ~= false
 	local keytype
 	if key_triggered then
-		keytype = minetest.settings:get("item_pickup_keytype") or "Use"
+		keytype = minetest.settings:get("item_drop.pickup_keytype") or "Use"
 	end
 	local damage_enabled = minetest.settings:get_bool("enable_damage")
 
@@ -124,7 +124,7 @@ if minetest.settings:get_bool("enable_item_pickup") ~= false then
 	minetest.after(3.0, pickup_step)
 end
 
-if minetest.settings:get_bool("enable_item_drop") ~= false then
+if minetest.settings:get_bool("item_drop.enable_item_drop") ~= false then
 	function minetest.handle_node_drops(pos, drops, digger)
 
 		local inv
