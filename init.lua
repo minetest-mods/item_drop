@@ -1,5 +1,3 @@
-local timer = 0
-
 if minetest.settings:get_bool("enable_item_pickup") ~= false then
   local pickup_gain = tonumber(minetest.settings:get("item_pickup_gain")) or 0.4
   local pickup_radius = tonumber(minetest.settings:get("item_pickup_radius")) or 0.75
@@ -10,12 +8,7 @@ if minetest.settings:get_bool("enable_item_pickup") ~= false then
   end
   local damage_enabled = minetest.settings:get_bool("enable_damage")
 
-  minetest.register_globalstep(function(dtime)
-
-    timer = timer + dtime
-    if timer < 0.2 then return end
-    timer = 0
-
+  local function pickupfunc()
     for _,player in ipairs(minetest.get_connected_players()) do
       local keys_pressed = not key_triggered
 
@@ -106,7 +99,13 @@ if minetest.settings:get_bool("enable_item_pickup") ~= false then
         end
       end
     end
-  end)
+  end
+
+  local function pickup_step()
+    pickupfunc()
+    minetest.after(0.2, pickup_step)
+  end
+  minetest.after(3.0, pickup_step)
 end
 
 if minetest.settings:get_bool("enable_item_drop") ~= false then
