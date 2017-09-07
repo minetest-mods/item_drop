@@ -83,14 +83,10 @@ if minetest.settings:get_bool("item_drop.enable_item_pickup") ~= false then
 							ent.itemstring = ""
 							object:remove()
 						else
-							local pos1 = pos
-							pos1.y = pos1.y+0.2
-							local vec = {x=pos1.x-pos2.x, y=pos1.y-pos2.y,
-								z=pos1.z-pos2.z}
-							vec.x = vec.x*3
-							vec.y = vec.y*3
-							vec.z = vec.z*3
-							object:setvelocity(vec)
+							local vel = vector.multiply(
+								vector.subtract(pos, pos2), 3)
+							vel.y = vel.y + 0.6
+							object:setvelocity(vel)
 							ent.physical_state = false
 							ent.object:set_properties({
 								physical = false
