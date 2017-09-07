@@ -3,6 +3,7 @@ if minetest.settings:get_bool("item_drop.enable_item_pickup") ~= false then
 		minetest.settings:get("item_drop.pickup_sound_gain")) or 0.4
 	local pickup_radius = tonumber(
 		minetest.settings:get("item_drop.pickup_radius")) or 0.75
+	local inner_radius = 1
 	local pickup_age = tonumber(
 		minetest.settings:get("item_drop.pickup_age")) or 0.5
 	local key_triggered = minetest.settings:get_bool(
@@ -13,45 +14,66 @@ if minetest.settings:get_bool("item_drop.enable_item_pickup") ~= false then
 	end
 	local damage_enabled = minetest.settings:get_bool("enable_damage")
 
-	-- gets the object's luaentity if it can be collected
-	local function opt_get_ent(object)
-		if object:is_player() then
-			return
-		end
-		local ent = object:get_luaentity()
-		if not ent
-		or ent.name ~= "__builtin:item"
-		or (ent.dropped_by and ent.age < pickup_age)
-		or ent.itemstring == "" then
-			return
-		end
-		return ent
-	end
+	-- TODO add proper magnet range settings
+	local zero_velocity_mode = pickup_age == -1
+		and pickup_radius <= inner_radius
 
-	-- take item or reset velocity after flying a second
-	local function afterflight(object, inv, player)
-		local ent = opt_get_ent(object)
-		if not ent then
-			return
+	-- opt_get_ent gets the object's luaentity if it can be collected
+	local opt_get_ent, afterflight
+	if zero_velocity_mode then
+		function opt_get_ent(object)
+			if object:is_player()
+			or not vector.equals(object:getvelocity(), {x=0, y=0, z=0}) then
+				return
+			end
+			local ent = object:get_luaentity()
+			if not ent
+			or ent.name ~= "__builtin:item"
+			or ent.itemstring == "" then
+				return
+			end
+			return ent
 		end
-		if inv
-		and inv:room_for_item("main",
-			ItemStack(ent.itemstring)
-		) then
-			inv:add_item("main",
-				ItemStack(ent.itemstring))
-			minetest.sound_play("item_drop_pickup", {
-				to_player = player:get_player_name(),
-				gain = pickup_gain,
-			})
-			ent.itemstring = ""
-			object:remove()
-		else
-			object:setvelocity({x=0,y=0,z=0})
-			ent.physical_state = true
-			ent.object:set_properties({
-				physical = true
-			})
+	else
+		function opt_get_ent(object)
+			if object:is_player() then
+				return
+			end
+			local ent = object:get_luaentity()
+			if not ent
+			or ent.name ~= "__builtin:item"
+			or (ent.dropped_by and ent.age < pickup_age)
+			or ent.itemstring == "" then
+				return
+			end
+			return ent
+		end
+
+		-- take item or reset velocity after flying a second
+		function afterflight(object, inv, player)
+			local ent = opt_get_ent(object)
+			if not ent then
+				return
+			end
+			if inv
+			and inv:room_for_item("main",
+				ItemStack(ent.itemstring)
+			) then
+				inv:add_item("main",
+					ItemStack(ent.itemstring))
+				minetest.sound_play("item_drop_pickup", {
+					to_player = player:get_player_name(),
+					gain = pickup_gain,
+				})
+				ent.itemstring = ""
+				object:remove()
+			else
+				object:setvelocity({x=0,y=0,z=0})
+				ent.physical_state = true
+				ent.object:set_properties({
+					physical = true
+				})
+			end
 		end
 	end
 
@@ -98,7 +120,7 @@ if minetest.settings:get_bool("item_drop.enable_item_pickup") ~= false then
 				if inv:room_for_item("main", ItemStack(ent.itemstring)) then
 					local pos2 = object:getpos()
 					local distance = vector.distance(pos, pos2)
-					if distance <= 1 then
+					if distance <= inner_radius then
 						inv:add_item("main", ItemStack(
 							ent.itemstring))
 						minetest.sound_play("item_drop_pickup", {
