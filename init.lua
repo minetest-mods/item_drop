@@ -55,74 +55,70 @@ if minetest.settings:get_bool("item_drop.enable_item_pickup") ~= false then
 		end
 	end
 
-	local function pickupfunc()
-		for _,player in ipairs(minetest.get_connected_players()) do
-			local keys_pressed = not key_triggered
+	local function pickupfunc(player)
+		local keys_pressed = not key_triggered
 
-			local control = player:get_player_control()
+		local control = player:get_player_control()
 
-			if keytype == "Use" then
-				keys_pressed = control.aux1
-			elseif keytype == "Sneak" then
-				keys_pressed = control.sneak
-			elseif keytype == "LeftAndRight" then -- LeftAndRight combination
-				keys_pressed = control.left and control.right
-			elseif keytype == "RMB" then
-				keys_pressed = control.RMB
-			elseif keytype == "SneakAndRMB" then -- SneakAndRMB combination
-				keys_pressed = control.sneak and control.RMB
-			end
+		if keytype == "Use" then
+			keys_pressed = control.aux1
+		elseif keytype == "Sneak" then
+			keys_pressed = control.sneak
+		elseif keytype == "LeftAndRight" then -- LeftAndRight combination
+			keys_pressed = control.left and control.right
+		elseif keytype == "RMB" then
+			keys_pressed = control.RMB
+		elseif keytype == "SneakAndRMB" then -- SneakAndRMB combination
+			keys_pressed = control.sneak and control.RMB
+		end
 
-			if not keys_pressed
-			or (damage_enabled and player:get_hp() <= 0) then
-				return
-			end
+		if not keys_pressed
+		or (damage_enabled and player:get_hp() <= 0) then
+			return
+		end
 
-			local pos = player:getpos()
-			pos.y = pos.y+0.5
-			local inv
+		local pos = player:getpos()
+		pos.y = pos.y+0.5
+		local inv
 
-			local objectlist = minetest.get_objects_inside_radius(pos,
-				pickup_radius)
-			for i = 1,#objectlist do
-				local object = objectlist[i]
-				local ent = opt_get_ent(object)
-				if ent then
+		local objectlist = minetest.get_objects_inside_radius(pos,
+			pickup_radius)
+		for i = 1,#objectlist do
+			local object = objectlist[i]
+			local ent = opt_get_ent(object)
+			if ent then
+				if not inv then
+					inv = player:get_inventory()
 					if not inv then
-						inv = player:get_inventory()
-						if not inv then
-							minetest.log("error", "[item_drop] Couldn't " ..
-								"get inventory")
-							return
-						end
+						minetest.log("error", "[item_drop] Couldn't " ..
+							"get inventory")
+						return
 					end
-					if inv:room_for_item("main",
-						ItemStack(ent.itemstring)
-					) then
-						local pos2 = object:getpos()
-						local distance = vector.distance(pos, pos2)
-						if distance <= 1 then
-							inv:add_item("main", ItemStack(
-								ent.itemstring))
-							minetest.sound_play("item_drop_pickup", {
-								to_player = player:get_player_name(),
-								gain = pickup_gain,
-							})
-							ent.itemstring = ""
-							object:remove()
-						else
-							local vel = vector.multiply(
-								vector.subtract(pos, pos2), 3)
-							vel.y = vel.y + 0.6
-							object:setvelocity(vel)
-							ent.physical_state = false
-							ent.object:set_properties({
-								physical = false
-							})
+				end
+				if inv:room_for_item("main", ItemStack(ent.itemstring)) then
+					local pos2 = object:getpos()
+					local distance = vector.distance(pos, pos2)
+					if distance <= 1 then
+						inv:add_item("main", ItemStack(
+							ent.itemstring))
+						minetest.sound_play("item_drop_pickup", {
+							to_player = player:get_player_name(),
+							gain = pickup_gain,
+						})
+						ent.itemstring = ""
+						object:remove()
+					else
+						local vel = vector.multiply(
+							vector.subtract(pos, pos2), 3)
+						vel.y = vel.y + 0.6
+						object:setvelocity(vel)
+						ent.physical_state = false
+						ent.object:set_properties({
+							physical = false
+						})
 
-							minetest.after(1.0, afterflight,
-								object, inv, player)
-						end
+						minetest.after(1.0, afterflight,
+							object, inv, player)
 					end
 				end
 			end
@@ -130,7 +126,10 @@ if minetest.settings:get_bool("item_drop.enable_item_pickup") ~= false then
 	end
 
 	local function pickup_step()
-		pickupfunc()
+		local players = minetest.get_connected_players()
+		for i = 1,#players do
+			pickupfunc(players[i])
+		end
 		minetest.after(0.01, pickup_step)
 	end
 	minetest.after(3.0, pickup_step)
