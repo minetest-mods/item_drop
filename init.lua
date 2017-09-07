@@ -18,6 +18,17 @@ if minetest.settings:get_bool("item_drop.enable_item_pickup") ~= false then
 	local zero_velocity_mode = pickup_age == -1
 		and pickup_radius <= inner_radius
 
+	-- adds the item to the inventory and removes the object
+	local function collect_item(inv, item, ent, object, pos)
+		inv:add_item("main", item)
+		minetest.sound_play("item_drop_pickup", {
+			pos = pos,
+			gain = pickup_gain,
+		})
+		ent.itemstring = ""
+		object:remove()
+	end
+
 	-- opt_get_ent gets the object's luaentity if it can be collected
 	local opt_get_ent, afterflight
 	if zero_velocity_mode then
@@ -50,23 +61,15 @@ if minetest.settings:get_bool("item_drop.enable_item_pickup") ~= false then
 		end
 
 		-- take item or reset velocity after flying a second
-		function afterflight(object, inv, player)
+		function afterflight(object, inv)
 			local ent = opt_get_ent(object)
 			if not ent then
 				return
 			end
+			local item = ItemStack(ent.itemstring)
 			if inv
-			and inv:room_for_item("main",
-				ItemStack(ent.itemstring)
-			) then
-				inv:add_item("main",
-					ItemStack(ent.itemstring))
-				minetest.sound_play("item_drop_pickup", {
-					to_player = player:get_player_name(),
-					gain = pickup_gain,
-				})
-				ent.itemstring = ""
-				object:remove()
+			and inv:room_for_item("main", item) then
+				collect_item(inv, item, ent, object, object:get_pos())
 			else
 				object:setvelocity({x=0,y=0,z=0})
 				ent.physical_state = true
@@ -117,18 +120,12 @@ if minetest.settings:get_bool("item_drop.enable_item_pickup") ~= false then
 						return
 					end
 				end
-				if inv:room_for_item("main", ItemStack(ent.itemstring)) then
+				local item = ItemStack(ent.itemstring)
+				if inv:room_for_item("main", item) then
 					local pos2 = object:getpos()
 					local distance = vector.distance(pos, pos2)
 					if distance <= inner_radius then
-						inv:add_item("main", ItemStack(
-							ent.itemstring))
-						minetest.sound_play("item_drop_pickup", {
-							to_player = player:get_player_name(),
-							gain = pickup_gain,
-						})
-						ent.itemstring = ""
-						object:remove()
+						collect_item(inv, item, ent, object, pos)
 					else
 						local vel = vector.multiply(
 							vector.subtract(pos, pos2), 3)
@@ -139,8 +136,7 @@ if minetest.settings:get_bool("item_drop.enable_item_pickup") ~= false then
 							physical = false
 						})
 
-						minetest.after(1.0, afterflight,
-							object, inv, player)
+						minetest.after(1.0, afterflight, object, inv)
 					end
 				end
 			end
