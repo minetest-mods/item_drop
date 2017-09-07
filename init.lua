@@ -21,10 +21,38 @@ if minetest.settings:get_bool("item_drop.enable_item_pickup") ~= false then
 		local ent = object:get_luaentity()
 		if not ent
 		or ent.name ~= "__builtin:item"
-		or (ent.dropped_by and ent.age < pickup_age) then
+		or (ent.dropped_by and ent.age < pickup_age)
+		or ent.itemstring == "" then
 			return
 		end
 		return ent
+	end
+
+	-- take item or reset velocity after flying a second
+	local function afterflight(object, inv, player)
+		local ent = opt_get_ent(object)
+		if not ent then
+			return
+		end
+		if inv
+		and inv:room_for_item("main",
+			ItemStack(ent.itemstring)
+		) then
+			inv:add_item("main",
+				ItemStack(ent.itemstring))
+			minetest.sound_play("item_drop_pickup", {
+				to_player = player:get_player_name(),
+				gain = pickup_gain,
+			})
+			ent.itemstring = ""
+			object:remove()
+		else
+			object:setvelocity({x=0,y=0,z=0})
+			ent.physical_state = true
+			ent.object:set_properties({
+				physical = true
+			})
+		end
 	end
 
 	local function pickupfunc()
@@ -92,34 +120,8 @@ if minetest.settings:get_bool("item_drop.enable_item_pickup") ~= false then
 								physical = false
 							})
 
-							minetest.after(1, function()
-								local lua = object:get_luaentity()
-								if not lua or not lua.itemstring then
-									return
-								end
-								if inv:room_for_item("main",
-									ItemStack(object:get_luaentity(
-									).itemstring)
-								) then
-									inv:add_item("main",
-										ItemStack(object:get_luaentity(
-										).itemstring))
-									if object:get_luaentity().itemstring ~= "" then
-										minetest.sound_play("item_drop_pickup", {
-											to_player = player:get_player_name(),
-											gain = pickup_gain,
-										})
-									end
-									object:get_luaentity().itemstring = ""
-									object:remove()
-								else
-									object:setvelocity({x=0,y=0,z=0})
-									object:get_luaentity().physical_state = true
-									object:get_luaentity().object:set_properties({
-										physical = true
-									})
-								end
-							end, {player, object})
+							minetest.after(1.0, afterflight,
+								object, inv, player)
 						end
 					end
 				end
