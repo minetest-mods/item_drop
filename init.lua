@@ -130,6 +130,7 @@ if minetest.settings:get_bool("item_drop.enable_item_pickup") ~= false then
 		local pos = player:getpos()
 		pos.y = pos.y+0.5
 		local inv
+		local got_item = false
 
 		local objectlist = minetest.get_objects_inside_radius(pos,
 			magnet_mode and magnet_radius or pickup_radius)
@@ -147,8 +148,15 @@ if minetest.settings:get_bool("item_drop.enable_item_pickup") ~= false then
 				end
 				local item = ItemStack(ent.itemstring)
 				if inv:room_for_item("main", item) then
+					if zero_velocity_mode then
+						-- collect one item at a time in zero velocity mode
+						-- to avoid the loud pop
+						collect_item(inv, item, ent, object, pos)
+						return true
+					end
 					local pos2 = object:getpos()
 					local distance = vector.distance(pos, pos2)
+					got_item = true
 					if distance <= pickup_radius then
 						collect_item(inv, item, ent, object, pos)
 					else
@@ -169,14 +177,23 @@ if minetest.settings:get_bool("item_drop.enable_item_pickup") ~= false then
 				end
 			end
 		end
+		return got_item
 	end
 
 	local function pickup_step()
+		local got_item
 		local players = minetest.get_connected_players()
 		for i = 1,#players do
-			pickupfunc(players[i])
+			got_item = got_item or pickupfunc(players[i])
 		end
-		minetest.after(0.01, pickup_step)
+		-- lower step if takeable item(s) were found
+		local time
+		if got_item then
+			time = 0.02
+		else
+			time = 0.2
+		end
+		minetest.after(time, pickup_step)
 	end
 	minetest.after(3.0, pickup_step)
 end
