@@ -24,5 +24,9 @@ item_drop.pickup_radius (Pickup radius) float 0.75
 #flying
 item_drop.magnet_radius (Magnet radius) float -1
 
+#Item flight duration, items flying for more than this time are added to the
+#player's inventory
+item_drop.magnet_time (Magnet time) float 5.0
+
 #Time delay in seconds after autopicking an item if it's dropped by a player
 item_drop.pickup_age (Pickup age) float 0.5
