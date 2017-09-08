@@ -13,8 +13,13 @@ item_drop.pickup_keytype (Pickup keytype) enum Use Use,Sneak,LeftAndRight,RMB,Sn
 #The volume of the pickup sound
 item_drop.pickup_sound_gain (Pickup sound gain) float 0.4
 
-#Player pickup radius
+#Player pickup radius, the maximum distance from which items can be collected
 item_drop.pickup_radius (Pickup radius) float 0.75
+
+#Magnet radius, items between pickup_radius and this begin flying to the player
+#Set it to -1 (or something else smaller than pickup_radius) to disable item
+#flying
+item_drop.magnet_radius (Magnet radius) float -1
 
 #Time delay in seconds after autopicking an item if it's dropped by a player
 item_drop.pickup_age (Pickup age) float 0.5
