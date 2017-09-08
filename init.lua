@@ -5,6 +5,8 @@ if minetest.settings:get_bool("item_drop.enable_item_pickup") ~= false then
 		minetest.settings:get("item_drop.pickup_radius")) or 0.75
 	local magnet_radius = tonumber(
 		minetest.settings:get("item_drop.magnet_radius")) or -1
+	local magnet_time = tonumber(
+		minetest.settings:get("item_drop.magnet_time")) or 5.0
 	local pickup_age = tonumber(
 		minetest.settings:get("item_drop.pickup_age")) or 0.5
 	local key_triggered = minetest.settings:get_bool(
@@ -145,7 +147,7 @@ if minetest.settings:get_bool("item_drop.enable_item_pickup") ~= false then
 							physical = false
 						})
 
-						minetest.after(1.0, afterflight, object, inv)
+						minetest.after(magnet_time, afterflight, object, inv)
 					end
 				end
 			end
