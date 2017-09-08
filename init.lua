@@ -142,12 +142,15 @@ if minetest.settings:get_bool("item_drop.enable_item_pickup") ~= false then
 							vector.subtract(pos, pos2), 3)
 						vel.y = vel.y + 0.6
 						object:setvelocity(vel)
-						ent.physical_state = false
-						ent.object:set_properties({
-							physical = false
-						})
+						if ent.physical_state then
+							ent.physical_state = false
+							ent.object:set_properties({
+								physical = false
+							})
 
-						minetest.after(magnet_time, afterflight, object, inv)
+							minetest.after(magnet_time, afterflight,
+								object, inv)
+						end
 					end
 				end
 			end
