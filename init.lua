@@ -3,7 +3,8 @@ if minetest.settings:get_bool("item_drop.enable_item_pickup") ~= false then
 		minetest.settings:get("item_drop.pickup_sound_gain")) or 0.4
 	local pickup_radius = tonumber(
 		minetest.settings:get("item_drop.pickup_radius")) or 0.75
-	local inner_radius = 1
+	local magnet_radius = tonumber(
+		minetest.settings:get("item_drop.magnet_radius")) or -1
 	local pickup_age = tonumber(
 		minetest.settings:get("item_drop.pickup_age")) or 0.5
 	local key_triggered = minetest.settings:get_bool(
@@ -14,9 +15,12 @@ if minetest.settings:get_bool("item_drop.enable_item_pickup") ~= false then
 	end
 	local damage_enabled = minetest.settings:get_bool("enable_damage")
 
-	-- TODO add proper magnet range settings
+	local magnet_mode = magnet_radius > pickup_radius
 	local zero_velocity_mode = pickup_age == -1
-		and pickup_radius <= inner_radius
+	if magnet_mode
+	and zero_velocity_mode then
+		error"zero velocity mode can't be used together with magnet mode"
+	end
 
 	-- adds the item to the inventory and removes the object
 	local function collect_item(inv, item, ent, object, pos)
@@ -30,7 +34,7 @@ if minetest.settings:get_bool("item_drop.enable_item_pickup") ~= false then
 	end
 
 	-- opt_get_ent gets the object's luaentity if it can be collected
-	local opt_get_ent, afterflight
+	local opt_get_ent
 	if zero_velocity_mode then
 		function opt_get_ent(object)
 			if object:is_player()
@@ -59,7 +63,10 @@ if minetest.settings:get_bool("item_drop.enable_item_pickup") ~= false then
 			end
 			return ent
 		end
+	end
 
+	local afterflight
+	if magnet_mode then
 		-- take item or reset velocity after flying a second
 		function afterflight(object, inv)
 			local ent = opt_get_ent(object)
@@ -107,7 +114,7 @@ if minetest.settings:get_bool("item_drop.enable_item_pickup") ~= false then
 		local inv
 
 		local objectlist = minetest.get_objects_inside_radius(pos,
-			pickup_radius)
+			magnet_mode and magnet_radius or pickup_radius)
 		for i = 1,#objectlist do
 			local object = objectlist[i]
 			local ent = opt_get_ent(object)
@@ -124,7 +131,7 @@ if minetest.settings:get_bool("item_drop.enable_item_pickup") ~= false then
 				if inv:room_for_item("main", item) then
 					local pos2 = object:getpos()
 					local distance = vector.distance(pos, pos2)
-					if distance <= inner_radius then
+					if distance <= pickup_radius then
 						collect_item(inv, item, ent, object, pos)
 					else
 						local vel = vector.multiply(
