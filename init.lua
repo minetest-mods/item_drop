@@ -90,24 +90,39 @@ if minetest.settings:get_bool("item_drop.enable_item_pickup") ~= false then
 		end
 	end
 
-	local function pickupfunc(player)
-		local keys_pressed = not key_triggered
+	-- set keytype to the key name if possible
+	if keytype == "Use" then
+		keytype = "aux1"
+	elseif keytype == "Sneak" then
+		keytype = "sneak"
+	elseif keytype == "LeftAndRight" then -- LeftAndRight combination
+		keytype = 0
+	elseif keytype == "SneakAndRMB" then -- SneakAndRMB combination
+		keytype = 1
+	end
 
-		local control = player:get_player_control()
 
-		if keytype == "Use" then
-			keys_pressed = control.aux1
-		elseif keytype == "Sneak" then
-			keys_pressed = control.sneak
-		elseif keytype == "LeftAndRight" then -- LeftAndRight combination
-			keys_pressed = control.left and control.right
-		elseif keytype == "RMB" then
-			keys_pressed = control.RMB
-		elseif keytype == "SneakAndRMB" then -- SneakAndRMB combination
-			keys_pressed = control.sneak and control.RMB
+	-- tests if the player has the keys pressed to enable item picking
+	local function keys_pressed(player)
+		if not key_triggered then
+			return true
 		end
 
-		if keys_pressed == key_invert
+		local control = player:get_player_control()
+		local keys_pressed
+		if keytype == 0 then -- LeftAndRight combination
+			keys_pressed = control.left and control.right
+		elseif keytpye == 1 then -- SneakAndRMB combination
+			keys_pressed = control.sneak and control.RMB
+		else
+			keys_pressed = control[keytype]
+		end
+
+		return keys_pressed ~= key_invert
+	end
+
+	local function pickupfunc(player)
+		if not keys_pressed(player)
 		or player:get_hp() <= 0 then
 			return
 		end
