@@ -9,6 +9,8 @@ if minetest.settings:get_bool("item_drop.enable_item_pickup") ~= false then
 		minetest.settings:get("item_drop.pickup_age")) or 0.5
 	local key_triggered = minetest.settings:get_bool(
 		"item_drop.enable_pickup_key") ~= false
+	local key_invert = minetest.settings:get_bool(
+		"item_drop.pickup_keyinvert") or false
 	local keytype
 	if key_triggered then
 		keytype = minetest.settings:get("item_drop.pickup_keytype") or "Use"
@@ -104,7 +106,7 @@ if minetest.settings:get_bool("item_drop.enable_item_pickup") ~= false then
 			keys_pressed = control.sneak and control.RMB
 		end
 
-		if not keys_pressed
+		if keys_pressed == key_invert
 		or (damage_enabled and player:get_hp() <= 0) then
 			return
 		end
