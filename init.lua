@@ -17,7 +17,6 @@ if minetest.settings:get_bool("item_drop.enable_item_pickup") ~= false then
 	if key_triggered then
 		keytype = minetest.settings:get("item_drop.pickup_keytype") or "Sneak"
 	end
-	local damage_enabled = minetest.settings:get_bool("enable_damage")
 
 	local magnet_mode = magnet_radius > pickup_radius
 	local zero_velocity_mode = pickup_age == -1
@@ -109,7 +108,7 @@ if minetest.settings:get_bool("item_drop.enable_item_pickup") ~= false then
 		end
 
 		if keys_pressed == key_invert
-		or (damage_enabled and player:get_hp() <= 0) then
+		or player:get_hp() <= 0 then
 			return
 		end
 
