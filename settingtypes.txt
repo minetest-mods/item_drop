@@ -7,6 +7,9 @@ item_drop.enable_item_drop (Enable item drops) bool true
 #Use a key to pick up items
 item_drop.enable_pickup_key (Use pickup key) bool true
 
+#Collect items when the key is not pressed instead of when it is pressed
+item_drop.pickup_keyinvert (Invert pickup key) bool false
+
 #What keytype to use as pickup key
 item_drop.pickup_keytype (Pickup keytype) enum Use Use,Sneak,LeftAndRight,RMB,SneakAndRMB
 
