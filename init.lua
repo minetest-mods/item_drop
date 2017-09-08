@@ -10,10 +10,10 @@ if minetest.settings:get_bool("item_drop.enable_item_pickup") ~= false then
 	local key_triggered = minetest.settings:get_bool(
 		"item_drop.enable_pickup_key") ~= false
 	local key_invert = minetest.settings:get_bool(
-		"item_drop.pickup_keyinvert") or false
+		"item_drop.pickup_keyinvert") ~= false
 	local keytype
 	if key_triggered then
-		keytype = minetest.settings:get("item_drop.pickup_keytype") or "Use"
+		keytype = minetest.settings:get("item_drop.pickup_keytype") or "Sneak"
 	end
 	local damage_enabled = minetest.settings:get_bool("enable_damage")
 
