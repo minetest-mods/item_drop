@@ -121,8 +121,10 @@ if minetest.settings:get_bool("item_drop.enable_item_pickup") ~= false then
 		return keys_pressed ~= key_invert
 	end
 
+	-- this function is called for each player to possibly collect items
 	local function pickupfunc(player)
 		if not keys_pressed(player)
+		or not minetest.get_player_privs(player:get_player_name()).interact
 		or player:get_hp() <= 0 then
 			return
 		end
