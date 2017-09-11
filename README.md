@@ -14,7 +14,7 @@ item_drop can be played with Minetest 0.4.16 or above. It was originally develop
 - All settings may be configured from within the game itself (Settings tab > Advanced settings > Mods > item_drop)
 - Drops nodes as in-world items on dig if `enable_item_drop` is `true`. (true by default)
 - Pulls items to the player's inventory if `enable_item_pickup` is `true`. (true by default) It uses a node radius set in `pickup_radius` (default 0.75)
-- Plays a sound the items are picked up, with the gain level set it `pickup_gain` (default 0.4)
+- Plays a sound the items are picked up, with the gain level set it `pickup_gain` (default 0.2)
 - Requires a key to be pressed in order to pull items if `enable_item_pickup_key` is `true`. (true by default). The keytypes to choose from by setting `item_pickup_keytype` are:
  - Use key (`Use`)
  - Sneak key (`Sneak`)
