@@ -1,7 +1,7 @@
 #Pick up items automatically
 item_drop.enable_item_pickup (Enable item pickups) bool true
 
-#Drop items in-world on dig
+#Drop items in-world on dig, does nothing in creative mode
 item_drop.enable_item_drop (Enable item drops) bool true
 
 #Use a key to pick up items

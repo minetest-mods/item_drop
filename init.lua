@@ -203,21 +203,9 @@ if minetest.settings:get_bool("item_drop.enable_item_pickup") ~= false then
 	minetest.after(3.0, pickup_step)
 end
 
-if minetest.settings:get_bool("item_drop.enable_item_drop") ~= false then
-	local creative_enabled = minetest.settings:get_bool("creative_mode")
-
-	function minetest.handle_node_drops(pos, drops, digger)
-
-		local inv
-		local diggerPos = pos
-
-		if creative_enabled
-		and digger
-		and digger:is_player() then
-			inv = digger:get_inventory()
-			diggerPos = digger:getpos()
-		end
-
+if minetest.settings:get_bool("item_drop.enable_item_drop") ~= false
+and not minetest.settings:get_bool("creative_mode") then
+	function minetest.handle_node_drops(pos, drops)
 		for i = 1,#drops do
 			local item = drops[i]
 			local count, name
@@ -229,25 +217,24 @@ if minetest.settings:get_bool("item_drop.enable_item_drop") ~= false then
 				name = item:get_name()
 			end
 
-			if not inv
-			or not inv:contains_item("main", ItemStack(name)) then
-				for _ = 1,count do
-					local obj = minetest.add_item(diggerPos, name)
-
-					if obj then
-						obj:get_luaentity().collect = true
-						local x = math.random(-5, 4)
-						if x >= 0 then
-							x = x+1
-						end
-						local z = math.random(-5, 4)
-						if z >= 0 then
-							z = z+1
-						end
-
-						obj:setvelocity({x=1/x, y=obj:getvelocity().y, z=1/z})
-					end
+			for _ = 1,count do
+				local obj = minetest.add_item(pos, name)
+				if not obj then
+					error("Couldn't spawn item")
 				end
+
+				local vel = obj:getvelocity()
+				local x = math.random(-5, 4)
+				if x >= 0 then
+					x = x+1
+				end
+				vel.x = x
+				local z = math.random(-5, 4)
+				if z >= 0 then
+					z = z+1
+				end
+				vel.z = z
+				obj:setvelocity(vel)
 			end
 		end
 	end
