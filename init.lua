@@ -1,3 +1,6 @@
+local load_time_start = minetest.get_us_time()
+
+
 if minetest.settings:get_bool("item_drop.enable_item_pickup") ~= false then
 	local pickup_gain = tonumber(
 		minetest.settings:get("item_drop.pickup_sound_gain")) or 0.2
@@ -246,6 +249,11 @@ if minetest.settings:get_bool("item_drop.enable_item_drop") ~= false then
 	end
 end
 
-if minetest.settings:get("log_mods") then
-	minetest.log("action", "[Mod] item_drop loaded")
+
+local time = (minetest.get_us_time() - load_time_start) / 1000000
+local msg = "[item_drop] loaded after ca. " .. time .. " seconds."
+if time > 0.01 then
+	print(msg)
+else
+	minetest.log("info", msg)
 end
