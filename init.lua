@@ -1,6 +1,6 @@
 if minetest.settings:get_bool("item_drop.enable_item_pickup") ~= false then
 	local pickup_gain = tonumber(
-		minetest.settings:get("item_drop.pickup_sound_gain")) or 0.4
+		minetest.settings:get("item_drop.pickup_sound_gain")) or 0.2
 	local pickup_radius = tonumber(
 		minetest.settings:get("item_drop.pickup_radius")) or 0.75
 	local magnet_radius = tonumber(
