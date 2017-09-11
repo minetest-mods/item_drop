@@ -29,14 +29,12 @@ if minetest.settings:get_bool("item_drop.enable_item_pickup") ~= false then
 	end
 
 	-- adds the item to the inventory and removes the object
-	local function collect_item(inv, item, ent, object, pos)
-		inv:add_item("main", item)
+	local function collect_item(ent, pos, player)
 		minetest.sound_play("item_drop_pickup", {
 			pos = pos,
 			gain = pickup_gain,
 		})
-		ent.itemstring = ""
-		object:remove()
+		ent:on_punch(player)
 	end
 
 	-- opt_get_ent gets the object's luaentity if it can be collected
@@ -74,7 +72,8 @@ if minetest.settings:get_bool("item_drop.enable_item_pickup") ~= false then
 	local afterflight
 	if magnet_mode then
 		-- take item or reset velocity after flying a second
-		function afterflight(object, inv)
+		function afterflight(object, inv, player)
+			-- TODO: test what happens if player left the game
 			local ent = opt_get_ent(object)
 			if not ent then
 				return
@@ -82,7 +81,7 @@ if minetest.settings:get_bool("item_drop.enable_item_pickup") ~= false then
 			local item = ItemStack(ent.itemstring)
 			if inv
 			and inv:room_for_item("main", item) then
-				collect_item(inv, item, ent, object, object:get_pos())
+				collect_item(ent, object:get_pos(), player)
 			else
 				object:setvelocity({x=0,y=0,z=0})
 				ent.physical_state = true
@@ -156,14 +155,14 @@ if minetest.settings:get_bool("item_drop.enable_item_pickup") ~= false then
 					if zero_velocity_mode then
 						-- collect one item at a time in zero velocity mode
 						-- to avoid the loud pop
-						collect_item(inv, item, ent, object, pos)
+						collect_item(ent, pos, player)
 						return true
 					end
 					local pos2 = object:getpos()
 					local distance = vector.distance(pos, pos2)
 					got_item = true
 					if distance <= pickup_radius then
-						collect_item(inv, item, ent, object, pos)
+						collect_item(ent, pos, player)
 					else
 						local vel = vector.multiply(
 							vector.subtract(pos, pos2), 3)
@@ -176,7 +175,7 @@ if minetest.settings:get_bool("item_drop.enable_item_pickup") ~= false then
 							})
 
 							minetest.after(magnet_time, afterflight,
-								object, inv)
+								object, inv, player)
 						end
 					end
 				end
