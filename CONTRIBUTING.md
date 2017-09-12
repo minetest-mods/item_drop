@@ -1,0 +1,2 @@
+- Put rewrites and new features in branches. This way `master` branch can be stable to end-users at all times.
+- Conform with setting defaults so that end-user upgrades doesn't change expected in-game behavior. Discuss default changes in an issue if one really need to change.
