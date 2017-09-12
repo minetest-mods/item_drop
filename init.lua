@@ -123,7 +123,7 @@ if minetest.settings:get_bool("item_drop.enable_item_pickup") ~= false then
 		return keys_pressed ~= key_invert
 	end
 
-	-- this function is called for each player to possibly collect items
+	-- called for each player to possibly collect an item, returns true if so
 	local function pickupfunc(player)
 		if not keys_pressed(player)
 		or not minetest.get_player_privs(player:get_player_name()).interact
@@ -134,7 +134,6 @@ if minetest.settings:get_bool("item_drop.enable_item_pickup") ~= false then
 		local pos = player:getpos()
 		pos.y = pos.y+0.5
 		local inv
-		local got_item = false
 
 		local objectlist = minetest.get_objects_inside_radius(pos,
 			magnet_mode and magnet_radius or pickup_radius)
@@ -152,36 +151,33 @@ if minetest.settings:get_bool("item_drop.enable_item_pickup") ~= false then
 				end
 				local item = ItemStack(ent.itemstring)
 				if inv:room_for_item("main", item) then
-					if zero_velocity_mode then
-						-- collect one item at a time in zero velocity mode
-						-- to avoid the loud pop
+					local flying_item
+					local pos2
+					if magnet_mode then
+						pos2 = object:getpos()
+						flying_item = vector.distance(pos, pos2) > pickup_radius
+					end
+					if not flying_item then
+						-- collect one item at a time to avoid the loud pop
 						collect_item(ent, pos, player)
 						return true
 					end
-					local pos2 = object:getpos()
-					local distance = vector.distance(pos, pos2)
-					got_item = true
-					if distance <= pickup_radius then
-						collect_item(ent, pos, player)
-					else
-						local vel = vector.multiply(
-							vector.subtract(pos, pos2), 3)
-						vel.y = vel.y + 0.6
-						object:setvelocity(vel)
-						if ent.physical_state then
-							ent.physical_state = false
-							ent.object:set_properties({
-								physical = false
-							})
+					local vel = vector.multiply(
+						vector.subtract(pos, pos2), 3)
+					vel.y = vel.y + 0.6
+					object:setvelocity(vel)
+					if ent.physical_state then
+						ent.physical_state = false
+						ent.object:set_properties({
+							physical = false
+						})
 
-							minetest.after(magnet_time, afterflight,
-								object, inv, player)
-						end
+						minetest.after(magnet_time, afterflight,
+							object, inv, player)
 					end
 				end
 			end
 		end
-		return got_item
 	end
 
 	local function pickup_step()
