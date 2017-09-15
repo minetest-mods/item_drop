@@ -1,2 +1,3 @@
-- Put rewrites and new features in branches. This way `master` branch can be stable to end-users at all times.
+- The `master` branch should be stable to end-users at all times. It should target latest Minetest point release.
+- Put rewrites and new features in branches.
 - Conform with setting defaults so that end-user upgrades doesn't change expected in-game behavior. Discuss default changes in an issue if one really need to change.
