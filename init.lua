@@ -114,7 +114,7 @@ if minetest.settings:get_bool("item_drop.enable_item_pickup") ~= false then
 		local keys_pressed
 		if keytype == 0 then -- LeftAndRight combination
 			keys_pressed = control.left and control.right
-		elseif keytpye == 1 then -- SneakAndRMB combination
+		elseif keytype == 1 then -- SneakAndRMB combination
 			keys_pressed = control.sneak and control.RMB
 		else
 			keys_pressed = control[keytype]
