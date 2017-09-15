@@ -223,12 +223,12 @@ and not minetest.settings:get_bool("creative_mode") then
 				if x >= 0 then
 					x = x+1
 				end
-				vel.x = x
+				vel.x = 1 / x
 				local z = math.random(-5, 4)
 				if z >= 0 then
 					z = z+1
 				end
-				vel.z = z
+				vel.z = 1 / z
 				obj:setvelocity(vel)
 			end
 		end
