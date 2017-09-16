@@ -19,6 +19,10 @@ if minetest.settings:get_bool("item_drop.enable_item_pickup") ~= false then
 	local keytype
 	if key_triggered then
 		keytype = minetest.settings:get("item_drop.pickup_keytype") or "Use"
+		-- disable pickup age if picking is explicitly enabled by the player
+		if not key_invert then
+			pickup_age = math.min(pickup_age, 0)
+		end
 	end
 
 	local magnet_mode = magnet_radius > pickup_radius
