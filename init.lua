@@ -109,7 +109,7 @@ if minetest.settings:get_bool("item_drop.enable_item_pickup") ~= false then
 
 
 	-- tests if the player has the keys pressed to enable item picking
-	local function keys_pressed(player)
+	local function has_keys_pressed(player)
 		if not key_triggered then
 			return true
 		end
@@ -129,7 +129,7 @@ if minetest.settings:get_bool("item_drop.enable_item_pickup") ~= false then
 
 	-- called for each player to possibly collect an item, returns true if so
 	local function pickupfunc(player)
-		if not keys_pressed(player)
+		if not has_keys_pressed(player)
 		or not minetest.get_player_privs(player:get_player_name()).interact
 		or player:get_hp() <= 0 then
 			return
