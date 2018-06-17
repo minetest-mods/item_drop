@@ -1,155 +1,249 @@
-local pickup = minetest.settings:get_bool("enable_item_pickup") ~= false
-local drop = minetest.settings:get_bool("enable_item_drop") ~= false
-local key = minetest.settings:get_bool("enable_item_pickup_key") ~= false
-local keytype = minetest.settings:get("item_pickup_keytype") or "Use"
-local pickup_gain = tonumber(minetest.settings:get("item_pickup_gain")) or 0.4
-local pickup_radius = tonumber(minetest.settings:get("item_pickup_radius")) or 0.75
+local load_time_start = minetest.get_us_time()
 
-local damage_enabled = minetest.settings:get_bool("enable_damage")
 
-local timer = 0
+if minetest.settings:get_bool("item_drop.enable_item_pickup") ~= false then
+	local pickup_gain = tonumber(
+		minetest.settings:get("item_drop.pickup_sound_gain")) or 0.2
+	local pickup_radius = tonumber(
+		minetest.settings:get("item_drop.pickup_radius")) or 0.75
+	local magnet_radius = tonumber(
+		minetest.settings:get("item_drop.magnet_radius")) or -1
+	local magnet_time = tonumber(
+		minetest.settings:get("item_drop.magnet_time")) or 5.0
+	local pickup_age = tonumber(
+		minetest.settings:get("item_drop.pickup_age")) or 0.5
+	local key_triggered = minetest.settings:get_bool(
+		"item_drop.enable_pickup_key") ~= false
+	local key_invert = minetest.settings:get_bool(
+		"item_drop.pickup_keyinvert") or false
+	local keytype
+	if key_triggered then
+		keytype = minetest.settings:get("item_drop.pickup_keytype") or "Use"
+		-- disable pickup age if picking is explicitly enabled by the player
+		if not key_invert then
+			pickup_age = math.min(pickup_age, 0)
+		end
+	end
 
-if pickup then
-  minetest.register_globalstep(function(dtime)
+	local magnet_mode = magnet_radius > pickup_radius
+	local zero_velocity_mode = pickup_age == -1
+	if magnet_mode
+	and zero_velocity_mode then
+		error"zero velocity mode can't be used together with magnet mode"
+	end
 
-    timer = timer + dtime
-    if timer < 0.2 then return end
-    timer = 0
+	-- adds the item to the inventory and removes the object
+	local function collect_item(ent, pos, player)
+		minetest.sound_play("item_drop_pickup", {
+			pos = pos,
+			gain = pickup_gain,
+		})
+		ent:on_punch(player)
+	end
 
-    for _,player in ipairs(minetest.get_connected_players()) do
-      local keys_pressed = false
+	-- opt_get_ent gets the object's luaentity if it can be collected
+	local opt_get_ent
+	if zero_velocity_mode then
+		function opt_get_ent(object)
+			if object:is_player()
+			or not vector.equals(object:getvelocity(), {x=0, y=0, z=0}) then
+				return
+			end
+			local ent = object:get_luaentity()
+			if not ent
+			or ent.name ~= "__builtin:item"
+			or ent.itemstring == "" then
+				return
+			end
+			return ent
+		end
+	else
+		function opt_get_ent(object)
+			if object:is_player() then
+				return
+			end
+			local ent = object:get_luaentity()
+			if not ent
+			or ent.name ~= "__builtin:item"
+			or (ent.dropped_by and ent.age < pickup_age)
+			or ent.itemstring == "" then
+				return
+			end
+			return ent
+		end
+	end
 
-      local control = player:get_player_control()
+	local afterflight
+	if magnet_mode then
+		-- take item or reset velocity after flying a second
+		function afterflight(object, inv, player)
+			-- TODO: test what happens if player left the game
+			local ent = opt_get_ent(object)
+			if not ent then
+				return
+			end
+			local item = ItemStack(ent.itemstring)
+			if inv
+			and inv:room_for_item("main", item) then
+				collect_item(ent, object:get_pos(), player)
+			else
+				object:setvelocity({x=0,y=0,z=0})
+				ent.physical_state = true
+				ent.object:set_properties({
+					physical = true
+				})
+			end
+		end
+	end
 
-      if keytype == "Use" then
-        keys_pressed = control.aux1
-      elseif keytype == "Sneak" then
-        keys_pressed = control.sneak
-      elseif keytype == "LeftAndRight" then -- LeftAndRight combination
-        keys_pressed = control.left and control.right
-      elseif keytype == "RMB" then
-        keys_pressed = control.RMB
-      elseif keytype == "SneakAndRMB" then -- SneakAndRMB combination
-        keys_pressed = control.sneak and control.RMB
-      end
+	-- set keytype to the key name if possible
+	if keytype == "Use" then
+		keytype = "aux1"
+	elseif keytype == "Sneak" then
+		keytype = "sneak"
+	elseif keytype == "LeftAndRight" then -- LeftAndRight combination
+		keytype = 0
+	elseif keytype == "SneakAndRMB" then -- SneakAndRMB combination
+		keytype = 1
+	end
 
-      if not keys_pressed and key
-      or (damage_enabled and player:get_hp() <= 0) then
-        return
-      end
 
-      local pos = player:getpos()
-      pos.y = pos.y+0.5
-      local inv = player:get_inventory()
+	-- tests if the player has the keys pressed to enable item picking
+	local function has_keys_pressed(player)
+		if not key_triggered then
+			return true
+		end
 
-      local objectlist = minetest.get_objects_inside_radius(pos, pickup_radius)
-      for _,object in ipairs(objectlist) do
-        if not object:is_player()
-        and object:get_luaentity()
-        and object:get_luaentity().name == "__builtin:item" then
-          local pos2 = object:getpos()
-          local distance = math.sqrt(((pos2.x - pos.x) * (pos2.x - pos.x)) + ((pos2.y - pos.y) * (pos2.y - pos.y))
-            + ((pos2.z - pos.z) * (pos2.z - pos.z)))
-          if distance <= 1 then
-            if inv and inv:room_for_item("main", ItemStack(object:get_luaentity().itemstring)) then
-              inv:add_item("main", ItemStack(object:get_luaentity().itemstring))
-              if object:get_luaentity().itemstring ~= "" then
-                minetest.sound_play("item_drop_pickup", {
-                  to_player = player:get_player_name(),
-                  gain = pickup_gain,
-                })
-              end
-              object:get_luaentity().itemstring = ""
-              object:remove()
-            end
-          else
-            if object:get_luaentity().collect then
-              if inv and inv:room_for_item("main", ItemStack(object:get_luaentity().itemstring)) then
-                local pos1 = pos
-                pos1.y = pos1.y+0.2
-                local vec = {x=pos1.x-pos2.x, y=pos1.y-pos2.y, z=pos1.z-pos2.z}
-                vec.x = vec.x*3
-                vec.y = vec.y*3
-                vec.z = vec.z*3
-                object:setvelocity(vec)
-                object:get_luaentity().physical_state = false
-                object:get_luaentity().object:set_properties({
-                  physical = false
-                })
+		local control = player:get_player_control()
+		local keys_pressed
+		if keytype == 0 then -- LeftAndRight combination
+			keys_pressed = control.left and control.right
+		elseif keytype == 1 then -- SneakAndRMB combination
+			keys_pressed = control.sneak and control.RMB
+		else
+			keys_pressed = control[keytype]
+		end
 
-                minetest.after(1, function()
-                  local lua = object:get_luaentity()
-                  if not lua or not lua.itemstring then
-                    return
-                  end
-                  if inv:room_for_item("main", ItemStack(object:get_luaentity().itemstring)) then
-                    inv:add_item("main", ItemStack(object:get_luaentity().itemstring))
-                    if object:get_luaentity().itemstring ~= "" then
-                      minetest.sound_play("item_drop_pickup", {
-                        to_player = player:get_player_name(),
-                        gain = pickup_gain,
-                      })
-                    end
-                    object:get_luaentity().itemstring = ""
-                    object:remove()
-                  else
-                    object:setvelocity({x=0,y=0,z=0})
-                    object:get_luaentity().physical_state = true
-                    object:get_luaentity().object:set_properties({
-                      physical = true
-                    })
-                  end
-                end, {player, object})
-              end
-            end
-          end
-        end
-      end
-    end
-  end)
+		return keys_pressed ~= key_invert
+	end
+
+	-- called for each player to possibly collect an item, returns true if so
+	local function pickupfunc(player)
+		if not has_keys_pressed(player)
+		or not minetest.get_player_privs(player:get_player_name()).interact
+		or player:get_hp() <= 0 then
+			return
+		end
+
+		local pos = player:getpos()
+		pos.y = pos.y+0.5
+		local inv
+
+		local objectlist = minetest.get_objects_inside_radius(pos,
+			magnet_mode and magnet_radius or pickup_radius)
+		for i = 1,#objectlist do
+			local object = objectlist[i]
+			local ent = opt_get_ent(object)
+			if ent then
+				if not inv then
+					inv = player:get_inventory()
+					if not inv then
+						minetest.log("error", "[item_drop] Couldn't " ..
+							"get inventory")
+						return
+					end
+				end
+				local item = ItemStack(ent.itemstring)
+				if inv:room_for_item("main", item) then
+					local flying_item
+					local pos2
+					if magnet_mode then
+						pos2 = object:getpos()
+						flying_item = vector.distance(pos, pos2) > pickup_radius
+					end
+					if not flying_item then
+						-- collect one item at a time to avoid the loud pop
+						collect_item(ent, pos, player)
+						return true
+					end
+					local vel = vector.multiply(
+						vector.subtract(pos, pos2), 3)
+					vel.y = vel.y + 0.6
+					object:setvelocity(vel)
+					if ent.physical_state then
+						ent.physical_state = false
+						ent.object:set_properties({
+							physical = false
+						})
+
+						minetest.after(magnet_time, afterflight,
+							object, inv, player)
+					end
+				end
+			end
+		end
+	end
+
+	local function pickup_step()
+		local got_item
+		local players = minetest.get_connected_players()
+		for i = 1,#players do
+			got_item = got_item or pickupfunc(players[i])
+		end
+		-- lower step if takeable item(s) were found
+		local time
+		if got_item then
+			time = 0.02
+		else
+			time = 0.2
+		end
+		minetest.after(time, pickup_step)
+	end
+	minetest.after(3.0, pickup_step)
 end
 
-if drop then
-  function minetest.handle_node_drops(pos, drops, digger)
+if minetest.settings:get_bool("item_drop.enable_item_drop") ~= false
+and not minetest.settings:get_bool("creative_mode") then
+	function minetest.handle_node_drops(pos, drops)
+		for i = 1,#drops do
+			local item = drops[i]
+			local count, name
+			if type(item) == "string" then
+				count = 1
+				name = item
+			else
+				count = item:get_count()
+				name = item:get_name()
+			end
 
-    local inv
-    local diggerPos = pos
+			for _ = 1,count do
+				local obj = minetest.add_item(pos, name)
+				if not obj then
+					error("Couldn't spawn item")
+				end
 
-    if minetest.settings:get_bool("creative_mode") and digger and digger:is_player() then
-      inv = digger:get_inventory()
-      diggerPos = digger:getpos()
-    end
-
-    for _,item in ipairs(drops) do
-      local count, name
-      if type(item) == "string" then
-        count = 1
-        name = item
-      else
-        count = item:get_count()
-        name = item:get_name()
-      end
-
-      if not inv or not inv:contains_item("main", ItemStack(name)) then
-        for i=1,count do
-
-          local adjustedPos = {x=diggerPos.x, y=diggerPos.y, z=diggerPos.z}
-          local obj = minetest.add_item(adjustedPos, name)
-
-          if obj ~= nil then
-            obj:get_luaentity().collect = true
-            local x = math.random(1, 5)
-            if math.random(1,2) == 1 then x = -x end
-
-            local z = math.random(1, 5)
-            if math.random(1,2) == 1 then z = -z end
-
-            obj:setvelocity({x=1/x, y=obj:getvelocity().y, z=1/z})
-          end
-        end
-      end
-    end
-  end
+				local vel = obj:getvelocity()
+				local x = math.random(-5, 4)
+				if x >= 0 then
+					x = x+1
+				end
+				vel.x = 1 / x
+				local z = math.random(-5, 4)
+				if z >= 0 then
+					z = z+1
+				end
+				vel.z = 1 / z
+				obj:setvelocity(vel)
+			end
+		end
+	end
 end
 
-if minetest.settings:get("log_mods") then minetest.log("action", "[Mod] item_drop loaded") end
+
+local time = (minetest.get_us_time() - load_time_start) / 1000000
+local msg = "[item_drop] loaded after ca. " .. time .. " seconds."
+if time > 0.01 then
+	print(msg)
+else
+	minetest.log("info", msg)
+end
