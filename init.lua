@@ -1,9 +1,11 @@
 local load_time_start = minetest.get_us_time()
+pickup_radius = tonumber(minetest.settings:get("item_pickup_radius"))
 
-
-if minetest.settings:get_bool("item_drop.enable_item_pickup") ~= false then
+if minetest.settings:get_bool("item_drop.enable_item_pickup") ~= false or
+minetest.settings:get_bool("enable_item_pickup") ~= false then
 	local pickup_gain = tonumber(
-		minetest.settings:get("item_drop.pickup_sound_gain")) or 0.2
+		minetest.settings:get("item_drop.pickup_sound_gain")) or
+		tonumber(minetest.settings:get("item_pickup_gain")) or 0.2
 	local pickup_radius = tonumber(
 		minetest.settings:get("item_drop.pickup_radius")) or 0.75
 	local magnet_radius = tonumber(
@@ -13,12 +15,14 @@ if minetest.settings:get_bool("item_drop.enable_item_pickup") ~= false then
 	local pickup_age = tonumber(
 		minetest.settings:get("item_drop.pickup_age")) or 0.5
 	local key_triggered = minetest.settings:get_bool(
-		"item_drop.enable_pickup_key") ~= false
+		"item_drop.enable_pickup_key") or
+		minetest.settings:get_bool("enable_item_pickup_key") ~= false
 	local key_invert = minetest.settings:get_bool(
 		"item_drop.pickup_keyinvert") or false
 	local keytype
 	if key_triggered then
-		keytype = minetest.settings:get("item_drop.pickup_keytype") or "Use"
+		keytype = minetest.settings:get("item_drop.pickup_keytype") or
+		minetest.settings:get("item_pickup_keytype") or "Use"
 		-- disable pickup age if picking is explicitly enabled by the player
 		if not key_invert then
 			pickup_age = math.min(pickup_age, 0)
@@ -202,7 +206,8 @@ if minetest.settings:get_bool("item_drop.enable_item_pickup") ~= false then
 	minetest.after(3.0, pickup_step)
 end
 
-if minetest.settings:get_bool("item_drop.enable_item_drop") ~= false
+if minetest.settings:get_bool("item_drop.enable_item_drop") ~= false or
+minetest.settings:get_bool("enable_item_drop") ~= false
 and not minetest.settings:get_bool("creative_mode") then
 	function minetest.handle_node_drops(pos, drops)
 		for i = 1,#drops do
