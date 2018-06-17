@@ -1,6 +1,6 @@
 # item_drop
 By [PilzAdam](https://github.com/PilzAdam),
-[texmex](https://github.com/tacotexmex/).
+[texmex](https://github.com/tacotexmex/), [hybriddog](https://github.com/hybriddog/).
 
 ## Description
 This mod adds Minecraft like drop/pick up of items to Minetest.
@@ -46,9 +46,9 @@ developed by [PilzAdam](https://github.com/PilzAdam/item_drop).
 
 ## Bug reports and suggestions
 You can report bugs or suggest ideas by
-[filing an issue](http://github.com/tacotexmex/item_drop/issues/new).
+[filing an issue](http://github.com/minetest-mods/item_drop/issues/new).
 
 ## Links
-* [Download ZIP](https://github.com/tacotexmex/item_drop/archive/master.zip)
-* [Source](https://github.com/tacotexmex/item_drop/)
+* [Download ZIP](https://github.com/minetest-mods/item_drop/archive/master.zip)
+* [Source](https://github.com/minetest-mods/item_drop/)
 * [Forum thread](https://forum.minetest.net/viewtopic.php?t=16913)
