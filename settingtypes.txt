@@ -16,6 +16,9 @@ item_drop.pickup_keytype (Pickup keytype) enum Use Use,Sneak,LeftAndRight,RMB,Sn
 #The volume of the pickup sound
 item_drop.pickup_sound_gain (Pickup sound gain) float 0.4
 
+#Display a particle of the item picked up above the player
+item_drop.pickup_particle (Pickup particle) bool true
+
 #Player pickup radius, the maximum distance from which items can be collected
 item_drop.pickup_radius (Pickup radius) float 0.75
 
