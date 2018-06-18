@@ -6,6 +6,8 @@ minetest.settings:get_bool("enable_item_pickup") ~= false then
 	local pickup_gain = tonumber(
 		minetest.settings:get("item_drop.pickup_sound_gain")) or
 		tonumber(minetest.settings:get("item_pickup_gain")) or 0.2
+	local pickup_particle =
+		minetest.settings:get_bool("item_drop.pickup_particle") ~= false
 	local pickup_radius = tonumber(
 		minetest.settings:get("item_drop.pickup_radius")) or 0.75
 	local magnet_radius = tonumber(
@@ -42,6 +44,49 @@ minetest.settings:get_bool("enable_item_pickup") ~= false then
 			pos = pos,
 			gain = pickup_gain,
 		})
+		if pickup_particle then
+			local item = minetest.registered_nodes[ent.itemstring:gsub("(.*)%s.*$","%1")]
+			local image = ""
+			if minetest.registered_items[item.name] and minetest.registered_items[item.name].tiles then
+				if minetest.registered_items[item.name].tiles[1] then
+						local dt = minetest.registered_items[item.name].drawtype
+						if dt == "normal" or dt == "allfaces" or dt == "allfaces_optional"
+						or dt == "glasslike" or dt =="glasslike_framed" or dt == "glasslike_framed_optional"
+						or dt == "liquid" or dt == "flowingliquid" then
+							local tiles = minetest.registered_items[item.name].tiles
+
+							local top = tiles[1]
+							if (type(top) == "table") then top = top.item end
+							local left = tiles[3]
+							if not left then left = top end
+							if (type(left) == "table") then left = left.item end
+							local right = tiles[5]
+							if not right then right = left end
+							if (type(right) == "table") then right = right.item end
+
+							image = "[inventorycube{"..top.."{"..left.."{"..right
+						else
+							image = minetest.registered_items[item.name].inventory_image
+							if not image then image = minetest.registered_items[item.name].tiles[1] end
+						end
+				end
+			end
+			if item then
+				local texture = item.tiles[1] or item.inventory_image or ""
+				if item.drawtype == "normal" then
+					texture = item.tiles
+				end
+				minetest.add_particle({
+					pos = {x = pos.x, y = pos.y + 1.5, z = pos.z},
+					velocity = {x = 0, y = 1, z = 0},
+					acceleration = {x = 0, y = -4, z = 0},
+					expirationtime = 0.2,
+					size = 3,--math.random() + 0.5,
+					vertical = false,
+					texture = image,
+				})
+			end
+		end
 		ent:on_punch(player)
 	end
 
