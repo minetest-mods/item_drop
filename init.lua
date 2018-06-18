@@ -1,7 +1,7 @@
 local load_time_start = minetest.get_us_time()
 pickup_radius = tonumber(minetest.settings:get("item_pickup_radius"))
 
-if minetest.settings:get_bool("item_drop.enable_item_pickup") ~= false or
+if minetest.settings:get_bool("item_drop.enable_item_pickup") ~= false and
 minetest.settings:get_bool("enable_item_pickup") ~= false then
 	local pickup_gain = tonumber(
 		minetest.settings:get("item_drop.pickup_sound_gain")) or
@@ -251,7 +251,7 @@ minetest.settings:get_bool("enable_item_pickup") ~= false then
 	minetest.after(3.0, pickup_step)
 end
 
-if minetest.settings:get_bool("item_drop.enable_item_drop") ~= false or
+if minetest.settings:get_bool("item_drop.enable_item_drop") ~= false and
 minetest.settings:get_bool("enable_item_drop") ~= false
 and not minetest.settings:get_bool("creative_mode") then
 	function minetest.handle_node_drops(pos, drops)
