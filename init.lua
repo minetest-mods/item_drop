@@ -64,7 +64,7 @@ minetest.settings:get_bool("enable_item_pickup") ~= false then
 							if not right then right = left end
 							if (type(right) == "table") then right = right.item end
 
-							image = "[inventorycube{"..top.."{"..left.."{"..right
+							image = minetest.inventorycube(top, left, right)
 						else
 							image = minetest.registered_items[item.name].inventory_image
 							if not image then image = minetest.registered_items[item.name].tiles[1] end
