@@ -47,7 +47,7 @@ minetest.settings:get_bool("enable_item_pickup") ~= false then
 		if pickup_particle then
 			local item = minetest.registered_nodes[ent.itemstring:gsub("(.*)%s.*$","%1")]
 			local image = ""
-			if minetest.registered_items[item.name] and minetest.registered_items[item.name].tiles then
+			if item and minetest.registered_items[item.name] and minetest.registered_items[item.name].tiles then
 				if minetest.registered_items[item.name].tiles[1] then
 						local dt = minetest.registered_items[item.name].drawtype
 						if dt == "normal" or dt == "allfaces" or dt == "allfaces_optional"
@@ -69,12 +69,6 @@ minetest.settings:get_bool("enable_item_pickup") ~= false then
 							image = minetest.registered_items[item.name].inventory_image
 							if not image then image = minetest.registered_items[item.name].tiles[1] end
 						end
-				end
-			end
-			if item then
-				local texture = item.tiles[1] or item.inventory_image or ""
-				if item.drawtype == "normal" then
-					texture = item.tiles
 				end
 				minetest.add_particle({
 					pos = {x = pos.x, y = pos.y + 1.5, z = pos.z},
@@ -266,10 +260,15 @@ and not minetest.settings:get_bool("creative_mode") then
 				name = item:get_name()
 			end
 
+			if name == "" then
+				-- Sometimes nothing should be dropped
+				count = 0
+			end
+
 			for _ = 1,count do
 				local obj = minetest.add_item(pos, name)
 				if not obj then
-					error("Couldn't spawn item")
+					error("Couldn't spawn item " .. name .. ", drops: " .. dump(drops))
 				end
 
 				local vel = obj:getvelocity()
