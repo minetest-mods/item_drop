@@ -19,6 +19,8 @@ developed by [PilzAdam](https://github.com/PilzAdam/item_drop).
   `true` (true by default) It does nothing in creative mode.
 * Puts dropped items to the player's inventory if `item_drop.enable_item_pickup`
   is `true` (true by default)
+  * Multiple items are picked in a quick succession instead of all at once which
+    is indicated by the pickup sound.
   * It uses a node radius set in `item_drop.pickup_radius` (default 0.75),
     if items are within this radius around the player's belt, they're picked.
   * If `item_drop.pickup_age` is something positive, items dropped by players
@@ -41,6 +43,9 @@ developed by [PilzAdam](https://github.com/PilzAdam/item_drop).
     * Sneak key and right mouse button combined (`SneakAndRMB`)
   * If `item_drop.pickup_keyinvert` is `true` (false by default), items are
     collected when the key is not pressed instead of when it's pressed.
+* Displays a particle of the picked item above the player if
+  `item_drop.pickup_particle` is `true` (true by default)
+
 
 ## Known issues
 
