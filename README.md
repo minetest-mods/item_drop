@@ -6,7 +6,7 @@ By [PilzAdam](https://github.com/PilzAdam),
 This mod adds Minecraft like drop/pick up of items to Minetest.
 
 ## Licensing
-LGPLv2.1/CC BY-SA 3.0.
+LGPLv2.1/CC BY-SA 3.0. Particle code from WCILA mod by Aurailus, originally licensed MIT.
 
 ## Notes
 item_drop can be played with Minetest 0.4.16 or above. It was originally
