@@ -67,15 +67,15 @@ minetest.settings:get_bool("enable_item_pickup") ~= false then
 
 					local top = tiles[1]
 					if type(top) == "table" then
-						top = top.item
+						top = top.name
 					end
 					local left = tiles[3] or top
 					if type(left) == "table" then
-						left = left.item
+						left = left.name
 					end
 					local right = tiles[5] or left
 					if type(right) == "table" then
-						right = right.item
+						right = right.name
 					end
 
 					image = minetest.inventorycube(top, left, right)
