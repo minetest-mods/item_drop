@@ -38,6 +38,19 @@ minetest.settings:get_bool("enable_item_pickup") ~= false then
 		error"zero velocity mode can't be used together with magnet mode"
 	end
 
+	-- tells whether an inventorycube should be shown as pickup_particle or not
+	-- for known drawtypes
+	local inventorycube_drawtypes = {
+		normal = true,
+		allfaces = true,
+		allfaces_optional = true,
+		glasslike = true,
+		glasslike_framed = true,
+		glasslike_framed_optional = true,
+		liquid = true,
+		flowingliquid = true,
+	}
+
 	-- adds the item to the inventory and removes the object
 	local function collect_item(ent, pos, player)
 		minetest.sound_play("item_drop_pickup", {
@@ -45,30 +58,29 @@ minetest.settings:get_bool("enable_item_pickup") ~= false then
 			gain = pickup_gain,
 		})
 		if pickup_particle then
-			local item = minetest.registered_nodes[ent.itemstring:gsub("(.*)%s.*$","%1")]
+			local item = minetest.registered_nodes[
+				ent.itemstring:gsub("(.*)%s.*$", "%1")]
 			local image = ""
-			if item and minetest.registered_items[item.name] and minetest.registered_items[item.name].tiles then
-				if minetest.registered_items[item.name].tiles[1] then
-						local dt = minetest.registered_items[item.name].drawtype
-						if dt == "normal" or dt == "allfaces" or dt == "allfaces_optional"
-						or dt == "glasslike" or dt =="glasslike_framed" or dt == "glasslike_framed_optional"
-						or dt == "liquid" or dt == "flowingliquid" then
-							local tiles = minetest.registered_items[item.name].tiles
+			if item and item.tiles and item.tiles[1] then
+				if inventorycube_drawtypes[item.drawtype] then
+					local tiles = item.tiles
 
-							local top = tiles[1]
-							if (type(top) == "table") then top = top.item end
-							local left = tiles[3]
-							if not left then left = top end
-							if (type(left) == "table") then left = left.item end
-							local right = tiles[5]
-							if not right then right = left end
-							if (type(right) == "table") then right = right.item end
+					local top = tiles[1]
+					if type(top) == "table" then
+						top = top.item
+					end
+					local left = tiles[3] or top
+					if type(left) == "table" then
+						left = left.item
+					end
+					local right = tiles[5] or left
+					if type(right) == "table" then
+						right = right.item
+					end
 
-							image = minetest.inventorycube(top, left, right)
-						else
-							image = minetest.registered_items[item.name].inventory_image
-							if not image then image = minetest.registered_items[item.name].tiles[1] end
-						end
+					image = minetest.inventorycube(top, left, right)
+				else
+					image = item.inventory_image or item.tiles[1]
 				end
 				minetest.add_particle({
 					pos = {x = pos.x, y = pos.y + 1.5, z = pos.z},
