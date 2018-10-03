@@ -142,13 +142,38 @@ minetest.settings:get_bool("enable_item_pickup") ~= false then
 			and inv:room_for_item("main", item) then
 				collect_item(ent, object:get_pos(), player)
 			else
-				object:setvelocity({x=0,y=0,z=0})
-				ent.physical_state = true
-				ent.object:set_properties({
-					physical = true
-				})
+				-- the acceleration will be reset by the object's on_step
+				object:set_velocity({x=0,y=0,z=0})
+				ent.is_magnet_item = false
 			end
 		end
+
+		-- disable velocity and acceleration changes of items flying to players
+		minetest.after(0, function()
+			local ObjectRef
+			local blocked_methods = {"set_acceleration", "set_velocity",
+				"setacceleration", "setvelocity"}
+			local itemdef = minetest.registered_entities["__builtin:item"]
+			local old_on_step = itemdef.on_step
+			local function do_nothing() end
+			function itemdef.on_step(self, dtime)
+				if not self.is_magnet_item then
+					return old_on_step(self, dtime)
+				end
+				ObjectRef = ObjectRef or getmetatable(self.object)
+				local old_funcs = {}
+				for i = 1, #blocked_methods do
+					local method = blocked_methods[i]
+					old_funcs[method] = ObjectRef[method]
+					ObjectRef[method] = do_nothing
+				end
+				old_on_step(self, dtime)
+				for i = 1, #blocked_methods do
+					local method = blocked_methods[i]
+					ObjectRef[method] = old_funcs[method]
+				end
+			end
+		end)
 	end
 
 	-- set keytype to the key name if possible
@@ -221,15 +246,12 @@ minetest.settings:get_bool("enable_item_pickup") ~= false then
 						collect_item(ent, pos, player)
 						return true
 					end
-					local vel = vector.multiply(
-						vector.subtract(pos, pos2), 3)
+					local vel = vector.multiply(vector.subtract(pos, pos2), 3)
 					vel.y = vel.y + 0.6
-					object:setvelocity(vel)
-					if ent.physical_state then
-						ent.physical_state = false
-						ent.object:set_properties({
-							physical = false
-						})
+					object:set_velocity(vel)
+					if not ent.is_magnet_item then
+						ent.object:set_acceleration({x=0, y=0, z=0})
+						ent.is_magnet_item = true
 
 						minetest.after(magnet_time, afterflight,
 							object, inv, player)
@@ -294,7 +316,7 @@ and not minetest.settings:get_bool("creative_mode") then
 					z = z+1
 				end
 				vel.z = 1 / z
-				obj:setvelocity(vel)
+				obj:set_velocity(vel)
 			end
 		end
 	end
