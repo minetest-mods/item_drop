@@ -1,3 +1,10 @@
+item_drop = {}
+item_drop.pickup_callbacks = {}
+
+item_drop.register_on_pickup = function(func)
+	table.insert(item_drop.pickup_callbacks, 1, func)
+end
+
 local load_time_start = minetest.get_us_time()
 pickup_radius = tonumber(minetest.settings:get("item_pickup_radius"))
 
@@ -57,9 +64,10 @@ minetest.settings:get_bool("enable_item_pickup") ~= false then
 			pos = pos,
 			gain = pickup_gain,
 		})
+
+		local item_name = ent.itemstring:gsub("(.*)%s.*$", "%1")
 		if pickup_particle then
-			local item = minetest.registered_nodes[
-				ent.itemstring:gsub("(.*)%s.*$", "%1")]
+			local item = minetest.registered_nodes[item_name]
 			local image = ""
 			if item and item.tiles and item.tiles[1] then
 				if inventorycube_drawtypes[item.drawtype] then
@@ -93,6 +101,11 @@ minetest.settings:get_bool("enable_item_pickup") ~= false then
 				})
 			end
 		end
+
+		for _, callback in ipairs(item_drop.pickup_callbacks) do
+			callback(player, item_name)
+		end
+
 		ent:on_punch(player)
 	end
 
