@@ -1,5 +1,4 @@
 local load_time_start = minetest.get_us_time()
-pickup_radius = tonumber(minetest.settings:get("item_pickup_radius"))
 
 if minetest.settings:get_bool("item_drop.enable_item_pickup") ~= false and
 minetest.settings:get_bool("enable_item_pickup") ~= false then
@@ -9,7 +8,8 @@ minetest.settings:get_bool("enable_item_pickup") ~= false then
 	local pickup_particle =
 		minetest.settings:get_bool("item_drop.pickup_particle") ~= false
 	local pickup_radius = tonumber(
-		minetest.settings:get("item_drop.pickup_radius")) or 0.75
+		minetest.settings:get("item_drop.pickup_radius")) or
+		tonumber(minetest.settings:get("item_pickup_radius")) or 0.75
 	local magnet_radius = tonumber(
 		minetest.settings:get("item_drop.magnet_radius")) or -1
 	local magnet_time = tonumber(
