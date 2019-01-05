@@ -1,5 +1,24 @@
 local load_time_start = minetest.get_us_time()
 
+-- Functions which can be overridden by mods
+assert(item_drop == nil)
+item_drop = {
+	-- This function is executed before picking up an item or making it fly to
+	-- the player. If it does not return true, the item is ignored.
+	-- It is also executed before collecting the item after it flew to
+	-- the player and did not reach him/her for magnet_time seconds.
+	can_pickup = function(entity, player)
+		return true
+	end,
+
+	-- before_collect and after_collect are executed before and after an item
+	-- is collected by a player
+	before_collect = function(entity, pos, player)
+	end,
+	after_collect = function(entity, pos, player)
+	end,
+}
+
 if minetest.settings:get_bool("item_drop.enable_item_pickup") ~= false and
 minetest.settings:get_bool("enable_item_pickup") ~= false then
 	local pickup_gain = tonumber(
@@ -53,6 +72,7 @@ minetest.settings:get_bool("enable_item_pickup") ~= false then
 
 	-- adds the item to the inventory and removes the object
 	local function collect_item(ent, pos, player)
+		item_drop.before_collect(ent, pos, player)
 		minetest.sound_play("item_drop_pickup", {
 			pos = pos,
 			gain = pickup_gain,
@@ -94,6 +114,7 @@ minetest.settings:get_bool("enable_item_pickup") ~= false then
 			end
 		end
 		ent:on_punch(player)
+		item_drop.after_collect(ent, pos, player)
 	end
 
 	-- opt_get_ent gets the object's luaentity if it can be collected
@@ -139,7 +160,8 @@ minetest.settings:get_bool("enable_item_pickup") ~= false then
 			end
 			local item = ItemStack(ent.itemstring)
 			if inv
-			and inv:room_for_item("main", item) then
+			and inv:room_for_item("main", item)
+			and can_pickup(ent, player) then
 				collect_item(ent, object:get_pos(), player)
 			else
 				-- the acceleration will be reset by the object's on_step
@@ -224,7 +246,8 @@ minetest.settings:get_bool("enable_item_pickup") ~= false then
 		for i = 1,#objectlist do
 			local object = objectlist[i]
 			local ent = opt_get_ent(object)
-			if ent then
+			if ent
+			and item_drop.can_pickup(ent, player) then
 				if not inv then
 					inv = player:get_inventory()
 					if not inv then
@@ -242,10 +265,13 @@ minetest.settings:get_bool("enable_item_pickup") ~= false then
 						flying_item = vector.distance(pos, pos2) > pickup_radius
 					end
 					if not flying_item then
-						-- collect one item at a time to avoid the loud pop
+						-- The item is near enough to pick it
 						collect_item(ent, pos, player)
+						-- Collect one item at a time to avoid the loud pop
 						return true
 					end
+					-- The item is not too far a way but near enough to be
+					-- magnetised, make it fly to the player
 					local vel = vector.multiply(vector.subtract(pos, pos2), 3)
 					vel.y = vel.y + 0.6
 					object:set_velocity(vel)
