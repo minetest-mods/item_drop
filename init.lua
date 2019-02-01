@@ -320,8 +320,9 @@ and not minetest.settings:get_bool("creative_mode") then
 				name = item:get_name()
 			end
 
-			if name == "" then
-				-- Sometimes nothing should be dropped
+			-- Sometimes nothing should be dropped
+			if name == ""
+			or not minetest.registered_nodes[name] then
 				count = 0
 			end
 
