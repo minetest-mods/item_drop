@@ -8,6 +8,10 @@ item_drop = {
 	-- It is also executed before collecting the item after it flew to
 	-- the player and did not reach him/her for magnet_time seconds.
 	can_pickup = function(entity, player)
+		if entity.item_drop_picked then
+			-- Ignore items where picking has already failed
+			return false
+		end
 		return true
 	end,
 
@@ -16,6 +20,7 @@ item_drop = {
 	before_collect = function(entity, pos, player)
 	end,
 	after_collect = function(entity, pos, player)
+		entity.item_drop_picked = true
 	end,
 }
 
