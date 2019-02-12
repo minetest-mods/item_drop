@@ -54,6 +54,11 @@ minetest.settings:get_bool("enable_item_pickup") ~= false then
 			pickup_age = math.min(pickup_age, 0)
 		end
 	end
+	local mouse_pickup = minetest.settings:get_bool(
+		"item_drop.mouse_pickup") ~= false
+	if not mouse_pickup then
+		minetest.registered_entities["__builtin:item"].pointable = false
+	end
 
 	local magnet_mode = magnet_radius > pickup_radius
 	local zero_velocity_mode = pickup_age == -1

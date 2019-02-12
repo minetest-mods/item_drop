@@ -33,3 +33,6 @@ item_drop.magnet_time (Magnet time) float 5.0
 
 #Time delay in seconds after autopicking an item if it's dropped by a player
 item_drop.pickup_age (Pickup age) float 0.5
+
+#Enable manual item pickups by mouse
+item_drop.mouse_pickup (Mouse pickup) bool true
