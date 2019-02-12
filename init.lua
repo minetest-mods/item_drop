@@ -1,7 +1,6 @@
 local load_time_start = minetest.get_us_time()
 
 -- Functions which can be overridden by mods
-assert(item_drop == nil)
 item_drop = {
 	-- This function is executed before picking up an item or making it fly to
 	-- the player. If it does not return true, the item is ignored.
