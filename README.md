@@ -31,6 +31,8 @@ developed by [PilzAdam](https://github.com/PilzAdam/item_drop).
     items between these radii are flying to the player for
     `item_drop.magnet_time` seconds, after this time, they're picked or stop
     flying.
+  * Enable manual item pickups by mouse only if `item_drop.mouse_pickup` is
+    `true` (true by default)
 * Plays a sound when the items are picked up with the gain level set to
   `item_drop.pickup_sound_gain` (default 0.2)
 * Requires a key to be pressed in order to pick items if
