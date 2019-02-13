@@ -3,7 +3,7 @@ By [PilzAdam](https://github.com/PilzAdam),
 [texmex](https://github.com/tacotexmex/), [hybriddog](https://github.com/hybriddog/).
 
 ## Description
-This mod adds Minecraft like drop/pick up of items to Minetest.
+A highly configurable mod providing item magnet and in-world node drops
 
 ## Licensing
 LGPLv2.1/CC BY-SA 3.0. Particle code from WCILA mod by Aurailus, originally licensed MIT.
