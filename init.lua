@@ -170,7 +170,7 @@ minetest.settings:get_bool("enable_item_pickup") ~= false then
 			local item = ItemStack(ent.itemstring)
 			if inv
 			and inv:room_for_item("main", item)
-			and can_pickup(ent, player) then
+			and item_drop.can_pickup(ent, player) then
 				collect_item(ent, object:get_pos(), player)
 			else
 				-- the acceleration will be reset by the object's on_step
