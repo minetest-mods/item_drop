@@ -1,1 +1,1 @@
-This mod adds Minecraft like drop/pick up of items to Minetest.
+A highly configurable mod providing item magnet and in-world node drops
