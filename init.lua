@@ -23,25 +23,39 @@ item_drop = {
 	end,
 }
 
-if minetest.settings:get_bool("item_drop.enable_item_pickup") ~= false and
-minetest.settings:get_bool("enable_item_pickup") ~= false then
-	local pickup_gain = tonumber(
-		minetest.settings:get("item_drop.pickup_sound_gain")) or
-		tonumber(minetest.settings:get("item_pickup_gain")) or 0.2
+local function legacy_setting_getbool(name_new, name_old, default)
+	local v = minetest.settings:get_bool(name_new)
+	if v == nil then
+		v = minetest.settings:get_bool(name_new)
+	end
+	if default then
+		return v ~= false
+	end
+	return v
+end
+
+local function legacy_setting_getnumber(name_new, name_old, default)
+	return tonumber(minetest.settings:get(name_new))
+		or tonumber(minetest.settings:get(name_old))
+		or default
+end
+
+if legacy_setting_getbool("item_drop.enable_item_pickup",
+		"enable_item_pickup", true) then
+	local pickup_gain = legacy_setting_getnumber("item_drop.pickup_sound_gain",
+		"item_pickup_gain", 0.2)
 	local pickup_particle =
-		minetest.settings:get_bool("item_drop.pickup_particle") ~= false
-	local pickup_radius = tonumber(
-		minetest.settings:get("item_drop.pickup_radius")) or
-		tonumber(minetest.settings:get("item_pickup_radius")) or 0.75
+		minetest.settings:get_bool("item_drop.pickup_particle", true)
+	local pickup_radius = legacy_setting_getnumber("item_drop.pickup_radius",
+		"item_pickup_radius", 0.75)
 	local magnet_radius = tonumber(
 		minetest.settings:get("item_drop.magnet_radius")) or -1
 	local magnet_time = tonumber(
 		minetest.settings:get("item_drop.magnet_time")) or 5.0
 	local pickup_age = tonumber(
 		minetest.settings:get("item_drop.pickup_age")) or 0.5
-	local key_triggered = minetest.settings:get_bool(
-		"item_drop.enable_pickup_key") or
-		minetest.settings:get_bool("enable_item_pickup_key") ~= false
+	local key_triggered = legacy_setting_getbool("item_drop.enable_pickup_key",
+		"enable_item_pickup_key", true)
 	local key_invert = minetest.settings:get_bool(
 		"item_drop.pickup_keyinvert") or false
 	local keytype
@@ -314,8 +328,7 @@ minetest.settings:get_bool("enable_item_pickup") ~= false then
 	minetest.after(3.0, pickup_step)
 end
 
-if minetest.settings:get_bool("item_drop.enable_item_drop") ~= false and
-minetest.settings:get_bool("enable_item_drop") ~= false
+if legacy_setting_getbool("item_drop.enable_item_drop", "enable_item_drop", true)
 and not minetest.settings:get_bool("creative_mode") then
 	function minetest.handle_node_drops(pos, drops)
 		for i = 1,#drops do
