@@ -43,7 +43,7 @@ developed by [PilzAdam](https://github.com/PilzAdam/item_drop).
     * Left and Right keys combined (`LeftAndRight`)
     * Right mouse button (`RMB`)
     * Sneak key and right mouse button combined (`SneakAndRMB`)
-  * If `item_drop.pickup_keyinvert` is `true` (false by default), items are
+  * If `item_drop.pickup_keyinvert` is `true`, items are
     collected when the key is not pressed instead of when it's pressed.
 * Displays a particle of the picked item above the player if
   `item_drop.pickup_particle` is `true` (true by default)
