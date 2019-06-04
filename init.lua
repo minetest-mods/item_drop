@@ -57,7 +57,7 @@ if legacy_setting_getbool("item_drop.enable_item_pickup",
 	local key_triggered = legacy_setting_getbool("item_drop.enable_pickup_key",
 		"enable_item_pickup_key", true)
 	local key_invert = minetest.settings:get_bool(
-		"item_drop.pickup_keyinvert") or false
+		"item_drop.pickup_keyinvert") ~= false
 	local keytype
 	if key_triggered then
 		keytype = minetest.settings:get("item_drop.pickup_keytype") or
