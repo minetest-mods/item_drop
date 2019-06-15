@@ -260,7 +260,7 @@ if legacy_setting_getbool("item_drop.enable_item_pickup",
 			return
 		end
 
-		local pos = player:getpos()
+		local pos = player:get_pos()
 		pos.y = pos.y+0.5
 		local inv
 
