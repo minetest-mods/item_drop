@@ -145,7 +145,7 @@ if legacy_setting_getbool("item_drop.enable_item_pickup",
 	if zero_velocity_mode then
 		function opt_get_ent(object)
 			if object:is_player()
-			or not vector.equals(object:getvelocity(), {x=0, y=0, z=0}) then
+			or not vector.equals(object:get_velocity(), {x=0, y=0, z=0}) then
 				return
 			end
 			local ent = object:get_luaentity()
@@ -284,7 +284,7 @@ if legacy_setting_getbool("item_drop.enable_item_pickup",
 					local flying_item
 					local pos2
 					if magnet_mode then
-						pos2 = object:getpos()
+						pos2 = object:get_pos()
 						flying_item = vector.distance(pos, pos2) > pickup_radius
 					end
 					if not flying_item then
@@ -354,7 +354,7 @@ and not minetest.settings:get_bool("creative_mode") then
 					error("Couldn't spawn item " .. name .. ", drops: " .. dump(drops))
 				end
 
-				local vel = obj:getvelocity()
+				local vel = obj:get_velocity()
 				local x = math.random(-5, 4)
 				if x >= 0 then
 					x = x+1
