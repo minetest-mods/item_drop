@@ -330,17 +330,59 @@ end
 
 if legacy_setting_getbool("item_drop.enable_item_drop", "enable_item_drop", true)
 and not minetest.settings:get_bool("creative_mode") then
+	-- Workaround to test if an item metadata (ItemStackMetaRef) is empty
+	local function itemmeta_is_empty(meta)
+		local t = meta:to_table()
+		for k, v in pairs(t) do
+			if k ~= "fields" then
+				return false
+			end
+			assert(type(v) == "table")
+			if next(v) ~= nil then
+				return false
+			end
+		end
+		return true
+	end
+
+	-- Tests if the item has special information such as metadata
+	local function can_split_item(item)
+		return item:get_wear() == 0 and itemmeta_is_empty(item:get_meta())
+	end
+
+	local function spawn_items(pos, items_to_spawn)
+		for i = 1,#items_to_spawn do
+			local obj = minetest.add_item(pos, items_to_spawn[i])
+			if not obj then
+				error("Couldn't spawn item " .. name .. ", drops: "
+					.. dump(drops))
+			end
+
+			local vel = obj:get_velocity()
+			local x = math.random(-5, 4)
+			if x >= 0 then
+				x = x+1
+			end
+			vel.x = 1 / x
+			local z = math.random(-5, 4)
+			if z >= 0 then
+				z = z+1
+			end
+			vel.z = 1 / z
+			obj:set_velocity(vel)
+		end
+	end
+
 	function minetest.handle_node_drops(pos, drops)
 		for i = 1,#drops do
 			local item = drops[i]
-			local count, name
 			if type(item) == "string" then
-				count = 1
-				name = item
-			else
-				count = item:get_count()
-				name = item:get_name()
+				-- The string is not necessarily only the item name,
+				-- so always convert it to ItemStack
+				item = ItemStack(item)
 			end
+			local count = item:get_count()
+			local name = item:get_name()
 
 			-- Sometimes nothing should be dropped
 			if name == ""
@@ -348,24 +390,16 @@ and not minetest.settings:get_bool("creative_mode") then
 				count = 0
 			end
 
-			for _ = 1,count do
-				local obj = minetest.add_item(pos, name)
-				if not obj then
-					error("Couldn't spawn item " .. name .. ", drops: " .. dump(drops))
+			if count > 0 then
+				-- Split items if possible
+				local items_to_spawn = {item}
+				if can_split_item(item) then
+					for i = 1,count do
+						items_to_spawn[i] = name
+					end
 				end
 
-				local vel = obj:get_velocity()
-				local x = math.random(-5, 4)
-				if x >= 0 then
-					x = x+1
-				end
-				vel.x = 1 / x
-				local z = math.random(-5, 4)
-				if z >= 0 then
-					z = z+1
-				end
-				vel.z = 1 / z
-				obj:set_velocity(vel)
+				spawn_items(pos, items_to_spawn)
 			end
 		end
 	end
