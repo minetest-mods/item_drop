@@ -1,4 +1,5 @@
 local load_time_start = minetest.get_us_time()
+math.randomseed(os.time())
 
 -- Functions which can be overridden by mods
 item_drop = {
@@ -99,6 +100,7 @@ if legacy_setting_getbool("item_drop.enable_item_pickup",
 		minetest.sound_play("item_drop_pickup", {
 			pos = pos,
 			gain = pickup_gain,
+			pitch = (100 - (math.random(-2, 2)) * 10) / 100,
 		})
 		if pickup_particle then
 			local item = minetest.registered_nodes[
