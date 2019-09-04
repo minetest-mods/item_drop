@@ -373,7 +373,13 @@ and not minetest.settings:get_bool("creative_mode") then
 		end
 	end
 
-	function minetest.handle_node_drops(pos, drops)
+	local old_handle_node_drops = minetest.handle_node_drops
+	function minetest.handle_node_drops(pos, drops, player)
+		if player.is_fake_player then
+			-- Node Breaker or similar machines should receive items in the
+			-- inventory
+			return old_handle_node_drops(pos, drops, player)
+		end
 		for i = 1,#drops do
 			local item = drops[i]
 			if type(item) == "string" then
