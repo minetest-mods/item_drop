@@ -263,11 +263,6 @@ if legacy_setting_getbool("item_drop.enable_item_pickup",
 		local pos = player:get_pos()
 		pos.y = pos.y+0.5
 		local inv = player:get_inventory()
-		if not inv then
-			minetest.log("error", "[item_drop] Couldn't " ..
-				"get inventory")
-			return
-		end
 
 		local objectlist = minetest.get_objects_inside_radius(pos,
 			magnet_mode and magnet_radius or pickup_radius)
