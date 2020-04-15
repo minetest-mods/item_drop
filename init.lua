@@ -262,7 +262,7 @@ if legacy_setting_getbool("item_drop.enable_item_pickup",
 
 		local pos = player:get_pos()
 		pos.y = pos.y+0.5
-		local inv
+		local inv = player:get_inventory()
 
 		local objectlist = minetest.get_objects_inside_radius(pos,
 			magnet_mode and magnet_radius or pickup_radius)
@@ -271,14 +271,6 @@ if legacy_setting_getbool("item_drop.enable_item_pickup",
 			local ent = opt_get_ent(object)
 			if ent
 			and item_drop.can_pickup(ent, player) then
-				if not inv then
-					inv = player:get_inventory()
-					if not inv then
-						minetest.log("error", "[item_drop] Couldn't " ..
-							"get inventory")
-						return
-					end
-				end
 				local item = ItemStack(ent.itemstring)
 				if inv:room_for_item("main", item) then
 					local flying_item
