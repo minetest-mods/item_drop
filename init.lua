@@ -201,9 +201,9 @@ if legacy_setting_getbool("item_drop.enable_item_pickup",
 			local itemdef = minetest.registered_entities["__builtin:item"]
 			local old_on_step = itemdef.on_step
 			local function do_nothing() end
-			function itemdef.on_step(self, dtime)
+			function itemdef.on_step(self, ...)
 				if not self.is_magnet_item then
-					return old_on_step(self, dtime)
+					return old_on_step(self, ...)
 				end
 				ObjectRef = ObjectRef or getmetatable(self.object)
 				local old_funcs = {}
@@ -212,7 +212,7 @@ if legacy_setting_getbool("item_drop.enable_item_pickup",
 					old_funcs[method] = ObjectRef[method]
 					ObjectRef[method] = do_nothing
 				end
-				old_on_step(self, dtime)
+				old_on_step(self, ...)
 				for i = 1, #blocked_methods do
 					local method = blocked_methods[i]
 					ObjectRef[method] = old_funcs[method]
