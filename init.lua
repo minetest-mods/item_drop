@@ -252,6 +252,13 @@ if legacy_setting_getbool("item_drop.enable_item_pickup",
 		return keys_pressed ~= key_invert
 	end
 
+	local function is_inside_map(pos)
+		local bound = 31000
+		return -bound < pos.x and pos.x < bound
+			and -bound < pos.y and pos.y < bound
+			and -bound < pos.z and pos.z < bound
+	end
+
 	-- called for each player to possibly collect an item, returns true if so
 	local function pickupfunc(player)
 		if not has_keys_pressed(player)
@@ -261,6 +268,10 @@ if legacy_setting_getbool("item_drop.enable_item_pickup",
 		end
 
 		local pos = player:get_pos()
+		if not is_inside_map(pos) then
+			-- get_objects_inside_radius crashes for too far positions
+			return
+		end
 		pos.y = pos.y+0.5
 		local inv = player:get_inventory()
 
