@@ -1,15 +1,14 @@
-# item_drop
+# Item Drop [![](https://github.com/minetest-mods/item_drop/workflows/build/badge.svg)](https://github.com/minetest-mods/item_drop/actions) [![License](https://img.shields.io/badge/license-LGPLv2.1%2B-blue.svg)](https://www.gnu.org/licenses/old-licenses/lgpl-2.1.en.html)
+
+A highly configurable mod providing item magnet and in-world node drops\
 By [PilzAdam](https://github.com/PilzAdam),
 [texmex](https://github.com/tacotexmex/), [hybriddog](https://github.com/hybriddog/).
-
-## Description
-A highly configurable mod providing item magnet and in-world node drops
 
 ## Licensing
 LGPLv2.1/CC BY-SA 3.0. Particle code from WCILA mod by Aurailus, originally licensed MIT.
 
 ## Notes
-item_drop can be played with Minetest 0.4.16 or above. It was originally
+`item_drop` can be played with Minetest 0.4.16 or above. It was originally
 developed by [PilzAdam](https://github.com/PilzAdam/item_drop).
 
 ## List of features
