@@ -103,7 +103,7 @@ if legacy_setting_getbool("item_drop.enable_item_pickup",
 		if pickup_particle then
 			local item = minetest.registered_nodes[
 				ent.itemstring:gsub("(.*)%s.*$", "%1")]
-			local image = ""
+			local image
 			if item and item.tiles and item.tiles[1] then
 				if inventorycube_drawtypes[item.drawtype] then
 					local tiles = item.tiles
