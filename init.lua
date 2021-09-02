@@ -99,7 +99,7 @@ if legacy_setting_getbool("item_drop.enable_item_pickup",
 		minetest.sound_play("item_drop_pickup", {
 			pos = pos,
 			gain = pickup_gain,
-		})
+		}, true)
 		if pickup_particle then
 			local item = minetest.registered_nodes[
 				ent.itemstring:gsub("(.*)%s.*$", "%1")]
