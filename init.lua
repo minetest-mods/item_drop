@@ -93,6 +93,27 @@ if legacy_setting_getbool("item_drop.enable_item_pickup",
 		flowingliquid = true,
 	}
 
+	-- Get an image string from a tile definition
+	local function tile_to_image(tile, fallback_image)
+		if not tile then
+			return fallback_image
+		end
+		local tile_type = type(tile)
+		if tile_type == "string" then
+			return tile
+		end
+		assert(tile_type == "table", "Tile definition is not a string or table")
+		local image = tile.name or tile.image
+		assert(image, "Tile definition has no image file specified")
+		if tile.color then
+			local colorstr = minetest.colorspec_to_colorstring(tile.color)
+			if colorstr then
+				return image .. "^[multiply:" .. colorstr
+			end
+		end
+		return image
+	end
+
 	-- adds the item to the inventory and removes the object
 	local function collect_item(ent, pos, player)
 		item_drop.before_collect(ent, pos, player)
@@ -107,20 +128,11 @@ if legacy_setting_getbool("item_drop.enable_item_pickup",
 			if item and item.tiles and item.tiles[1] then
 				if inventorycube_drawtypes[item.drawtype] then
 					local tiles = item.tiles
-
-					local top = tiles[1]
-					if type(top) == "table" then
-						top = top.name
-					end
-					local left = tiles[3] or top
-					if type(left) == "table" then
-						left = left.name
-					end
-					local right = tiles[5] or left
-					if type(right) == "table" then
-						right = right.name
-					end
-
+					-- color in the tile definition is handled by tile_to_image.
+					-- color in the node definition is not yet supported here.
+					local top = tile_to_image(tiles[1])
+					local left = tile_to_image(tiles[3], top)
+					local right = tile_to_image(tiles[5], left)
 					image = minetest.inventorycube(top, left, right)
 				else
 					image = item.inventory_image or item.tiles[1]
