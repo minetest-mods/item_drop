@@ -367,10 +367,11 @@ and not minetest.settings:get_bool("creative_mode") then
 
 	local function spawn_items(pos, items_to_spawn)
 		for i = 1,#items_to_spawn do
-			local obj = minetest.add_item(pos, items_to_spawn[i])
+			local name = items_to_spawn[i]
+
+			local obj = minetest.add_item(pos, name)
 			if not obj then
-				error("Couldn't spawn item " .. name .. ", drops: "
-					.. dump(drops))
+				error("Couldn't spawn item " .. name)
 			end
 
 			local vel = obj:get_velocity()
